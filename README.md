@@ -1,37 +1,69 @@
-# Budget-IT
+# Budge-IT: Personal Budget Tracker
 
-A comprehensive budget tracking application built with Flask and SQLAlchemy, featuring user authentication, transaction management, and financial analytics.
+A comprehensive personal budget tracking application built with Flask and SQLAlchemy, featuring user authentication, transaction management, and financial analytics.
 
-## Features
+## 🚀 Features
 
-- **User Authentication**: Secure login and registration system
+- **User Authentication**: Secure login/registration system
 - **Transaction Management**: Add, edit, and delete income/expense transactions
-- **Category Management**: Custom categories with color coding
-- **Financial Analytics**: Interactive charts and summary statistics
-- **Admin Panel**: User management and system administration
-- **Responsive Design**: Modern UI with dark mode support
+- **Category Management**: Customizable categories with color coding
+- **Financial Analytics**: Charts and reports for spending analysis
+- **Admin Dashboard**: User management and system overview
+- **Responsive Design**: Mobile-friendly interface
 
-## Tech Stack
+## 🏗️ Project Structure
 
-- **Backend**: Flask, SQLAlchemy
+```
+├── app.py                 # Main Flask application factory
+├── wsgi.py               # Production WSGI entry point
+├── config.py             # Configuration settings
+├── decorators.py         # Authentication decorators
+├── requirements.txt      # Python dependencies
+├── runtime.txt           # Python version specification
+├── render.yaml           # Render deployment configuration
+├── Procfile             # Heroku deployment configuration
+├── setup.py             # Package configuration
+├── build.sh             # Build script
+├── database/            # Database models and utilities
+│   ├── models.py        # SQLAlchemy models
+│   └── utils.py         # Database utility functions
+├── routes/              # Application routes
+│   ├── auth.py          # Authentication routes
+│   ├── main.py          # Main application routes
+│   └── admin.py         # Admin dashboard routes
+├── templates/           # HTML templates
+├── static/              # CSS, JS, and static assets
+├── scripts/             # Utility scripts
+│   ├── create_sample_data.py
+│   └── test_database.py
+├── docs/                # Documentation
+│   ├── API_DOCUMENTATION.md
+│   ├── DEPLOYMENT_GUIDE.md
+│   ├── PROJECT_OVERVIEW.md
+│   └── TESTING_GUIDE.md
+└── config/              # Configuration files
+```
+
+## 👥 Team Members
+
+- **Anthony**: Application factory, configuration, and deployment setup
+- **Marwin**: SQLAlchemy models and database schema
+- **Vince**: Database utilities, main routes, and core functionality
+
+## 🛠️ Technology Stack
+
+- **Backend**: Flask 2.0.3, SQLAlchemy 1.4.53
 - **Database**: PostgreSQL (Supabase)
-- **Frontend**: HTML, CSS, JavaScript, Chart.js
-- **Authentication**: Flask-Login
-- **Deployment**: Render
+- **Authentication**: Flask-Login 0.5.0
+- **Frontend**: HTML5, CSS3, JavaScript, Chart.js
+- **Deployment**: Render, Gunicorn 20.1.0
 
-## Local Development
-
-### Prerequisites
-
-- Python 3.8+
-- PostgreSQL database (local or Supabase)
-
-### Installation
+## 📦 Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/lMarul/Budget-IT.git
-   cd Budget-IT
+   git clone https://github.com/lMarul/Budge-IT.git
+   cd Budge-IT
    ```
 
 2. **Install dependencies**
@@ -40,325 +72,68 @@ A comprehensive budget tracking application built with Flask and SQLAlchemy, fea
    ```
 
 3. **Set up environment variables**
-   Create a `.env` file with:
-   ```
-   SECRET_KEY=your-secret-key
-   DATABASE_URL=postgresql://username:password@host:port/database
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
    ```
 
-4. **Run the application**
+4. **Initialize the database**
+   ```bash
+   python -c "from app import create_app; from database.utils import initialize_database; app = create_app(); initialize_database(app)"
+   ```
+
+5. **Run the application**
    ```bash
    python app.py
    ```
 
-5. **Access the application**
-   Open http://localhost:5001 in your browser
+## 🌐 Deployment
 
-## Deployment on Render
+### Render Deployment
 
-### Prerequisites
-
-- Render account
-- Supabase database (or any PostgreSQL database)
-
-### Deployment Steps
-
-1. **Fork/Clone this repository** to your GitHub account
-
-2. **Create a new Web Service** on Render:
-   - Connect your GitHub repository
-   - Choose "Python" as the environment
-   - Set build command: `pip install -r requirements.txt`
-   - Set start command: `gunicorn app:app`
-
-3. **Configure Environment Variables** in Render:
-   - `SECRET_KEY`: Generate a secure random key
+1. **Connect your GitHub repository to Render**
+2. **Set environment variables**:
+   - `SECRET_KEY`: Your Flask secret key
    - `DATABASE_URL`: Your Supabase PostgreSQL connection string
-   - `FLASK_ENV`: `production`
-   - `FLASK_DEBUG`: `0`
+   - `FLASK_ENV`: production
+   - `FLASK_APP`: wsgi.py
 
-4. **Deploy**
-   - Click "Create Web Service"
-   - Render will automatically build and deploy your application
+3. **Deploy**: Render will automatically deploy using the configuration in `render.yaml`
 
-### Environment Variables for Production
+### Database Setup
 
-```bash
-SECRET_KEY=your-super-secret-production-key
-DATABASE_URL=postgresql://username:password@host:port/database
-FLASK_ENV=production
-FLASK_DEBUG=0
-```
-
-### Supabase Database Setup
-
-1. Create a new project on Supabase
-2. Get your database connection string from Settings > Database
-3. Update the `DATABASE_URL` environment variable in Render
-
-## Project Structure
-
-```
-Budget-IT/
-├── app.py                 # Main application file
-├── config.py             # Configuration settings
-├── requirements.txt      # Python dependencies
-├── render.yaml          # Render deployment config
-├── Procfile            # Alternative deployment config
-├── database/           # Database models and utilities
-│   ├── models.py       # SQLAlchemy models
-│   └── utils.py        # Database utilities
-├── routes/             # Flask route blueprints
-│   ├── auth.py         # Authentication routes
-│   ├── main.py         # Main application routes
-│   └── admin.py        # Admin panel routes
-├── templates/          # HTML templates
-├── static/            # CSS, JS, and images
-└── scripts/           # Utility scripts
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For support and questions, please open an issue on GitHub.
-
-## 🎯 Features
-
-### User Features
-- ✅ **Secure Authentication** - Registration, login, and session management
-- ✅ **Dashboard** - Financial overview with interactive charts
-- ✅ **Transaction Management** - Add, edit, and delete income/expenses
-- ✅ **Category Management** - Customizable categories with color coding
-- ✅ **Transaction History** - Comprehensive history with filtering
-- ✅ **Dark/Light Mode** - User preference for interface theme
-- ✅ **Responsive Design** - Works on desktop and mobile devices
-
-### Admin Features
-- ✅ **User Management** - View, edit, and delete user accounts
-- ✅ **Database Viewer** - Excel-like interface for data browsing
-- ✅ **System Statistics** - Overview of all system data
-- ✅ **Secure Access** - Admin-only routes with proper authentication
-
-### Technical Features
-- ✅ **Real-time Updates** - AJAX-based smooth interactions
-- ✅ **Data Validation** - Client-side and server-side validation
-- ✅ **Error Handling** - Proper error pages and logging
-- ✅ **Security** - Password hashing, session management, CSRF protection
-
-## 🏗️ Architecture
-
-### Technology Stack
-- **Backend**: Flask (Python web framework)
-- **Frontend**: HTML5, CSS3, JavaScript, Tailwind CSS
-- **Database**: JSON-based file storage
-- **Charts**: Chart.js for data visualization
-- **Authentication**: Session-based with password hashing
-
-### Architecture Pattern
-- **MVC Pattern**: Model-View-Controller separation
-- **Blueprint Architecture**: Modular route organization
-- **Template Inheritance**: Consistent UI with base templates
-- **RESTful Design**: Clean URL structure and HTTP methods
-
-## 📁 Project Structure
-
-```
-budget-tracker/
-├── app.py                 # Main application entry point
-├── config.py             # Configuration management
-├── models.py             # Data models and business logic
-├── utils.py              # Utility functions and helpers
-├── decorators.py         # Authentication decorators
-├── requirements.txt      # Python dependencies
-├── budget_tracker.json   # JSON database file
-├── data_flow.txt         # Data flow documentation
-├── routes/               # Flask blueprints
-│   ├── __init__.py
-│   ├── auth.py          # Authentication routes
-│   ├── main.py          # Main application routes
-│   └── admin.py         # Admin functionality routes
-├── templates/            # HTML templates
-│   ├── base.html        # Base template
-│   ├── admin_functions/ # Admin-specific templates
-│   └── members/         # Team member profiles
-├── static/              # Static assets (images, CSS, JS)
-└── docs/               # Documentation
-    ├── PROJECT_OVERVIEW.md
-    ├── API_DOCUMENTATION.md
-    └── README_*.md
-```
-
-## 🔧 Configuration
-
-The application supports multiple environments through configuration classes:
-
-### Development
-```python
-# Default configuration with debug mode enabled
-DEBUG = True
-HOST = '127.0.0.1'
-PORT = 5001
-```
-
-### Production
-```python
-# Production configuration with security settings
-DEBUG = False
-HOST = '0.0.0.0'
-PORT = 5001
-SECRET_KEY = os.environ.get('SECRET_KEY')
-```
-
-### Environment Variables
-- `SECRET_KEY` - Flask secret key for session management
-- `PORT` - Application port (default: 5001)
-
-## 🔐 Security Features
-
-- **Password Hashing**: Using Werkzeug's security functions
-- **Session Management**: Secure session handling
-- **Route Protection**: Authentication and authorization decorators
-- **Input Validation**: Protection against malicious input
-- **CSRF Protection**: Form submission security
-- **Data Isolation**: Users can only access their own data
-
-## 📊 Data Flow
-
-The application follows a clear data flow pattern:
-
-1. **User Input** → HTML forms and AJAX requests
-2. **Route Processing** → Flask routes handle requests
-3. **Business Logic** → Models process data and apply rules
-4. **Data Storage** → JSON file persistence
-5. **Response** → HTML templates or JSON responses
-
-For detailed data flow documentation, see `data_flow.txt`.
-
-## 🎨 UI/UX Design
-
-### Design Principles
-- **Clean & Modern**: Minimalist design with clear hierarchy
-- **Responsive**: Mobile-first approach with responsive breakpoints
-- **Accessible**: Proper contrast ratios and keyboard navigation
-- **Consistent**: Unified design language across all pages
-
-### Dark Mode Support
-- Automatic theme detection
-- User preference persistence
-- Consistent styling across all components
-
-## 🧪 Testing
-
-### Manual Testing Checklist
-- [ ] User registration and authentication
-- [ ] Transaction creation and management
-- [ ] Category management
-- [ ] Admin functionality
-- [ ] Responsive design on different devices
-- [ ] Dark/light mode toggle
-- [ ] Error handling and validation
-
-### Automated Testing (Future)
-- Unit tests for models and utilities
-- Integration tests for routes
-- Frontend testing with JavaScript
-- Performance testing
-
-## 🚀 Deployment
-
-### Development Environment
-- Local Flask development server
-- Debug mode enabled
-- Detailed error messages
-
-### Production Environment
-- WSGI server (Gunicorn recommended)
-- Debug mode disabled
-- Environment variables for configuration
-- Proper logging and monitoring
-
-## 📈 Future Enhancements
-
-### Planned Features
-- **Export Functionality**: PDF and Excel export
-- **Budget Goals**: Set and track financial goals
-- **Recurring Transactions**: Automatic transaction creation
-- **Multi-currency Support**: International currency handling
-- **Mobile App**: Native mobile application
-- **API Integration**: Third-party bank integration
-
-### Technical Improvements
-- **Database Migration**: SQLite or PostgreSQL
-- **Caching**: Redis for performance optimization
-- **Background Tasks**: Celery for async processing
-- **Monitoring**: Application performance monitoring
-- **CI/CD**: Automated testing and deployment
+1. Create a Supabase project
+2. Run the SQL schema from `supabase_schema.sql`
+3. Configure Row Level Security (RLS) policies
+4. Set the `DATABASE_URL` environment variable
 
 ## 📚 Documentation
 
-- **[Project Overview](docs/PROJECT_OVERVIEW.md)** - Comprehensive project documentation
-- **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete API reference
-- **[Data Flow](data_flow.txt)** - Detailed data flow analysis
-- **[Architecture](docs/README_OPTIMIZED.md)** - System architecture details
+- [API Documentation](docs/API_DOCUMENTATION.md)
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
+- [Project Overview](docs/PROJECT_OVERVIEW.md)
+- [Testing Guide](docs/TESTING_GUIDE.md)
+- [Deployment Setup](DEPLOYMENT_SETUP.md)
 
-## 👥 Development Team
+## 🔧 Development
 
-- **Project Lead**: Maru
-- **Backend Developer**: Vince
-- **Frontend Developer**: Marwin
-- **UI/UX Designer**: Nika
-- **Quality Assurance**: Anthony
-- **Documentation**: Vinz
+### Running Tests
+```bash
+python scripts/test_database.py
+```
 
-## 🐛 Troubleshooting
+### Creating Sample Data
+```bash
+python scripts/create_sample_data.py
+```
 
-### Common Issues
-
-1. **Port already in use**
-   ```bash
-   # Change port in config.py or use different port
-   python app.py --port 5002
-   ```
-
-2. **Database file not found**
-   - The application will create the database file automatically
-   - Check file permissions in the project directory
-
-3. **Import errors**
-   ```bash
-   # Ensure virtual environment is activated
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
-
-### Getting Help
-
-1. Check the application logs for detailed error messages
-2. Review the data flow documentation in `data_flow.txt`
-3. Contact the development team through the contact page
+### Database Migration
+The application automatically migrates from JSON to SQLAlchemy on first run.
 
 ## 📄 License
 
-This project is developed for educational purposes as part of a Data Structures course project.
+This project is part of a Data Structures course assignment.
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
----
-
-*Last updated: December 2024*
+This is an academic project. For questions or issues, please contact the development team.

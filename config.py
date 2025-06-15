@@ -7,6 +7,21 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+def get_database_url():
+    """
+    Get database URL with proper formatting for Render deployment.
+    
+    Render provides DATABASE_URL in the format:
+    postgresql://user:password@host:port/database
+    
+    This function ensures the URL is properly formatted.
+    """
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url and database_url.startswith('postgres://'):
+        # Convert postgres:// to postgresql:// for newer versions
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    return database_url
+
 class Config:
     """
     Base configuration class for the Budget Tracker application.
@@ -20,7 +35,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-change-in-production'
     
     # SQLAlchemy Database configuration for Supabase
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+    SQLALCHEMY_DATABASE_URI = get_database_url() or \
         'postgresql://postgres:password@localhost:5432/budget_tracker'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
@@ -46,7 +61,7 @@ class DevelopmentConfig(Config):
     PORT = 5001
     
     # Development database URL (can be local PostgreSQL or Supabase)
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+    SQLALCHEMY_DATABASE_URI = get_database_url() or \
         'postgresql://postgres:password@localhost:5432/budget_tracker_dev'
 
 class ProductionConfig(Config):
@@ -64,7 +79,7 @@ class ProductionConfig(Config):
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'production-secret-key-change-this'
     
     # Production database URL (should be Supabase)
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = get_database_url()
 
 class TestingConfig(Config):
     """

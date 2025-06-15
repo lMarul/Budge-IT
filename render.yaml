@@ -4,11 +4,11 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.7.18
       - key: FLASK_ENV
         value: production
-      - key: FLASK_DEBUG
-        value: 0 
+      - key: FLASK_APP
+        value: wsgi.py 
