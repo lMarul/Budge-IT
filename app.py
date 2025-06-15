@@ -10,6 +10,7 @@ from database.utils import initialize_database, datetimeformat
 from routes.auth import auth_bp
 from routes.main import main_bp
 from routes.admin import admin_bp
+import os
 
 def create_app(config_name='development'):
     """
@@ -76,10 +77,12 @@ app = create_app()
 
 if __name__ == '__main__':
     # Run application with configuration from config.py
+    # For Render deployment, use environment variables
+    port = int(os.environ.get('PORT', 5000))
     app.run(
-        host=app.config.get('HOST', '0.0.0.0'),
-        port=app.config.get('PORT', 5000),
-        debug=app.config.get('DEBUG', True)
+        host='0.0.0.0',
+        port=port,
+        debug=False  # Set to False for production
     )
 
 

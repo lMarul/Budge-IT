@@ -1,30 +1,49 @@
-# Budget Tracker System
+# Budget-IT
 
-A comprehensive Flask-based budget tracking application with modern UI, admin functionality, and robust data management.
+A comprehensive budget tracking application built with Flask and SQLAlchemy, featuring user authentication, transaction management, and financial analytics.
 
-## 🚀 Quick Start
+## Features
+
+- **User Authentication**: Secure login and registration system
+- **Transaction Management**: Add, edit, and delete income/expense transactions
+- **Category Management**: Custom categories with color coding
+- **Financial Analytics**: Interactive charts and summary statistics
+- **Admin Panel**: User management and system administration
+- **Responsive Design**: Modern UI with dark mode support
+
+## Tech Stack
+
+- **Backend**: Flask, SQLAlchemy
+- **Database**: PostgreSQL (Supabase)
+- **Frontend**: HTML, CSS, JavaScript, Chart.js
+- **Authentication**: Flask-Login
+- **Deployment**: Render
+
+## Local Development
 
 ### Prerequisites
-- Python 3.7 or higher
-- pip (Python package installer)
+
+- Python 3.8+
+- PostgreSQL database (local or Supabase)
 
 ### Installation
 
-1. **Clone and navigate to the project**
+1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd budget-tracker
+   git clone https://github.com/lMarul/Budget-IT.git
+   cd Budget-IT
    ```
 
-2. **Create virtual environment (recommended)**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**
+2. **Install dependencies**
    ```bash
    pip install -r requirements.txt
+   ```
+
+3. **Set up environment variables**
+   Create a `.env` file with:
+   ```
+   SECRET_KEY=your-secret-key
+   DATABASE_URL=postgresql://username:password@host:port/database
    ```
 
 4. **Run the application**
@@ -33,8 +52,85 @@ A comprehensive Flask-based budget tracking application with modern UI, admin fu
    ```
 
 5. **Access the application**
-   - Main app: http://127.0.0.1:5001
-   - Admin access: Login with username `admin`
+   Open http://localhost:5001 in your browser
+
+## Deployment on Render
+
+### Prerequisites
+
+- Render account
+- Supabase database (or any PostgreSQL database)
+
+### Deployment Steps
+
+1. **Fork/Clone this repository** to your GitHub account
+
+2. **Create a new Web Service** on Render:
+   - Connect your GitHub repository
+   - Choose "Python" as the environment
+   - Set build command: `pip install -r requirements.txt`
+   - Set start command: `gunicorn app:app`
+
+3. **Configure Environment Variables** in Render:
+   - `SECRET_KEY`: Generate a secure random key
+   - `DATABASE_URL`: Your Supabase PostgreSQL connection string
+   - `FLASK_ENV`: `production`
+   - `FLASK_DEBUG`: `0`
+
+4. **Deploy**
+   - Click "Create Web Service"
+   - Render will automatically build and deploy your application
+
+### Environment Variables for Production
+
+```bash
+SECRET_KEY=your-super-secret-production-key
+DATABASE_URL=postgresql://username:password@host:port/database
+FLASK_ENV=production
+FLASK_DEBUG=0
+```
+
+### Supabase Database Setup
+
+1. Create a new project on Supabase
+2. Get your database connection string from Settings > Database
+3. Update the `DATABASE_URL` environment variable in Render
+
+## Project Structure
+
+```
+Budget-IT/
+├── app.py                 # Main application file
+├── config.py             # Configuration settings
+├── requirements.txt      # Python dependencies
+├── render.yaml          # Render deployment config
+├── Procfile            # Alternative deployment config
+├── database/           # Database models and utilities
+│   ├── models.py       # SQLAlchemy models
+│   └── utils.py        # Database utilities
+├── routes/             # Flask route blueprints
+│   ├── auth.py         # Authentication routes
+│   ├── main.py         # Main application routes
+│   └── admin.py        # Admin panel routes
+├── templates/          # HTML templates
+├── static/            # CSS, JS, and images
+└── scripts/           # Utility scripts
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For support and questions, please open an issue on GitHub.
 
 ## 🎯 Features
 
@@ -265,5 +361,4 @@ This project is developed for educational purposes as part of a Data Structures 
 
 ---
 
-*Last updated: December 2024* #   B u d g e - I T  
- 
+*Last updated: December 2024*
