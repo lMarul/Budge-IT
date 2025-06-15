@@ -14,33 +14,40 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 ## 🏗️ Project Structure
 
 ```
-├── app.py                 # Main Flask application factory
-├── wsgi.py               # Production WSGI entry point
-├── config.py             # Configuration settings
-├── decorators.py         # Authentication decorators
-├── requirements.txt      # Python dependencies
-├── runtime.txt           # Python version specification
-├── render.yaml           # Render deployment configuration
-├── Procfile             # Heroku deployment configuration
-├── build.sh             # Build script
-├── database/            # Database models and utilities
-│   ├── models.py        # SQLAlchemy models
-│   └── utils.py         # Database utility functions
-├── routes/              # Application routes
-│   ├── auth.py          # Authentication routes
-│   ├── main.py          # Main application routes
-│   └── admin.py         # Admin dashboard routes
-├── templates/           # HTML templates
-├── static/              # CSS, JS, and static assets
-├── scripts/             # Utility scripts
-│   ├── create_sample_data.py
-│   └── test_database.py
-├── docs/                # Documentation
-│   ├── API_DOCUMENTATION.md
-│   ├── DEPLOYMENT_GUIDE.md
-│   ├── PROJECT_OVERVIEW.md
-│   └── TESTING_GUIDE.md
-└── config/              # Configuration files
+├── app/                        # Main application package
+│   ├── __init__.py            # App factory
+│   ├── config.py              # Configuration settings
+│   ├── decorators.py          # Authentication decorators
+│   ├── models/                # Database models
+│   │   └── __init__.py        # SQLAlchemy models
+│   ├── routes/                # Application routes
+│   │   ├── __init__.py        # Routes package
+│   │   ├── auth.py            # Authentication routes
+│   │   ├── main.py            # Main application routes
+│   │   └── admin.py           # Admin dashboard routes
+│   └── utils/                 # Utility functions
+│       ├── __init__.py        # Utils package
+│       └── database.py        # Database utility functions
+├── deployment/                # Deployment configuration
+│   ├── render.yaml            # Render deployment config
+│   ├── nhost.yaml             # Nhost deployment config
+│   ├── nhost.env.example      # Nhost environment template
+│   ├── NHOST_DEPLOYMENT.md    # Nhost deployment guide
+│   ├── Procfile              # Heroku deployment config
+│   ├── build.sh              # Build script
+│   └── supabase_schema.sql   # Database schema
+├── migrations/                # Database migrations
+├── templates/                 # HTML templates
+├── static/                    # CSS, JS, and static assets
+├── scripts/                   # Utility scripts
+├── tests/                     # Test files
+├── docs/                      # Documentation
+├── requirements.txt           # Python dependencies
+├── runtime.txt                # Python version specification
+├── Dockerfile                 # Docker configuration
+├── .dockerignore             # Docker ignore file
+├── wsgi.py                    # Production WSGI entry point
+└── README.md                  # Project documentation
 ```
 
 ## 👥 Team Members
@@ -51,11 +58,11 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 
 ## 🛠️ Technology Stack
 
-- **Backend**: Flask 2.0.3, SQLAlchemy 1.4.53
-- **Database**: PostgreSQL (Supabase)
-- **Authentication**: Flask-Login 0.5.0
+- **Backend**: Flask 3.0.0, SQLAlchemy 2.0.23
+- **Database**: PostgreSQL (Supabase/Nhost)
+- **Authentication**: Flask-Login 0.6.3
 - **Frontend**: HTML5, CSS3, JavaScript, Chart.js
-- **Deployment**: Render, Gunicorn 20.1.0
+- **Deployment**: Render, Nhost, Heroku, Gunicorn 21.2.0
 
 ## 📦 Installation
 
@@ -72,21 +79,34 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 
 3. **Set up environment variables**
    ```bash
-   cp .env.example .env
+   cp deployment/nhost.env.example .env
    # Edit .env with your configuration
    ```
 
 4. **Initialize the database**
    ```bash
-   python -c "from app import create_app; from database.utils import initialize_database; app = create_app(); initialize_database(app)"
+   python -c "from app import create_app; from app.utils.database import initialize_database; app = create_app(); initialize_database(app)"
    ```
 
 5. **Run the application**
    ```bash
-   python app.py
+   python wsgi.py
    ```
 
 ## 🌐 Deployment
+
+### Nhost Deployment (Recommended)
+
+Nhost provides a complete backend-as-a-service platform with PostgreSQL, authentication, and file storage.
+
+1. **Follow the Nhost deployment guide**: [deployment/NHOST_DEPLOYMENT.md](deployment/NHOST_DEPLOYMENT.md)
+2. **Quick start**:
+   ```bash
+   npm install -g nhost
+   nhost login
+   nhost init budge-it
+   nhost up
+   ```
 
 ### Render Deployment
 
@@ -97,12 +117,12 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
    - `FLASK_ENV`: production
    - `FLASK_APP`: wsgi.py
 
-3. **Deploy**: Render will automatically deploy using the configuration in `render.yaml`
+3. **Deploy**: Render will automatically deploy using the configuration in `deployment/render.yaml`
 
 ### Database Setup
 
-1. Create a Supabase project
-2. Run the SQL schema from `supabase_schema.sql`
+1. Create a PostgreSQL database (Supabase, Nhost, or your preferred provider)
+2. Run the SQL schema from `deployment/supabase_schema.sql`
 3. Configure Row Level Security (RLS) policies
 4. Set the `DATABASE_URL` environment variable
 
@@ -112,13 +132,13 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 - [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
 - [Project Overview](docs/PROJECT_OVERVIEW.md)
 - [Testing Guide](docs/TESTING_GUIDE.md)
-- [Deployment Setup](DEPLOYMENT_SETUP.md)
+- [Nhost Deployment Guide](deployment/NHOST_DEPLOYMENT.md)
 
 ## 🔧 Development
 
 ### Running Tests
 ```bash
-python scripts/test_database.py
+python -m pytest tests/
 ```
 
 ### Creating Sample Data
@@ -129,6 +149,9 @@ python scripts/create_sample_data.py
 ### Database Migration
 The application automatically migrates from JSON to SQLAlchemy on first run.
 
+### Health Check
+Your application includes a health check endpoint at `/health` for deployment monitoring.
+
 ## 📄 License
 
 This project is part of a Data Structures course assignment.
@@ -136,3 +159,23 @@ This project is part of a Data Structures course assignment.
 ## 🤝 Contributing
 
 This is an academic project. For questions or issues, please contact the development team.
+
+## 🚀 Quick Deploy
+
+### Deploy to Nhost in 5 minutes:
+
+1. **Install Nhost CLI**:
+   ```bash
+   npm install -g nhost
+   ```
+
+2. **Deploy**:
+   ```bash
+   nhost login
+   nhost init budge-it
+   nhost up
+   ```
+
+3. **Access your app** at the provided URL!
+
+For detailed instructions, see [deployment/NHOST_DEPLOYMENT.md](deployment/NHOST_DEPLOYMENT.md).
