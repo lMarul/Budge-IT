@@ -1,4 +1,5 @@
-# Anthony - Python 3.12 compatible dependencies
+# Budge-It Flask Application Dependencies
+# Single requirements file for deployment platforms like Render
 
 # Core Flask Framework
 Flask==3.0.0
@@ -17,17 +18,17 @@ click==8.1.7
 # Event Handling
 blinker==1.7.0
 
-# Database - SQLAlchemy and PostgreSQL for Supabase (Python 3.12 compatible)
+# Database - SQLAlchemy and PostgreSQL for Supabase
 SQLAlchemy==2.0.23
 psycopg2-binary==2.9.9
 Flask-SQLAlchemy==3.1.1
 python-dotenv==1.0.0
 Flask-Login==0.6.3
 
-# Development & Testing (Optional)
+# Production Deployment
+gunicorn==21.2.0
+
+# Optional Development Dependencies (uncomment if needed)
 # pytest==7.4.0
 # pytest-flask==1.2.0
-# coverage==7.2.7
-
-# Production Deployment
-gunicorn==21.2.0 
+# coverage==7.2.7 

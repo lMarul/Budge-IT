@@ -22,7 +22,6 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 ├── runtime.txt           # Python version specification
 ├── render.yaml           # Render deployment configuration
 ├── Procfile             # Heroku deployment configuration
-├── setup.py             # Package configuration
 ├── build.sh             # Build script
 ├── database/            # Database models and utilities
 │   ├── models.py        # SQLAlchemy models
