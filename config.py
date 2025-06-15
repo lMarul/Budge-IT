@@ -72,8 +72,8 @@ class ProductionConfig(Config):
     in production environments.
     """
     DEBUG = False
-    HOST = '0.0.0.0'
-    PORT = int(os.environ.get('PORT', 5001))
+    HOST = '0.0.0.0'  # Bind to all interfaces for Render
+    PORT = int(os.environ.get('PORT', 10000))  # Render default port
     
     # Use environment variable for secret key in production
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'production-secret-key-change-this'

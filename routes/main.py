@@ -14,6 +14,21 @@ from database.utils import get_transactions_by_user, get_categories_by_user_and_
 # Create main blueprint for organizing application routes
 main_bp = Blueprint('main', __name__)
 
+# Health check endpoint for Render deployment
+@main_bp.route('/health')
+def health_check():
+    """
+    Health check endpoint for Render deployment monitoring.
+    
+    Returns:
+        dict: Health status response
+    """
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.utcnow().isoformat(),
+        'service': 'budge-it'
+    }), 200
+
 # Route: / - Entry point, redirects based on authentication status
 @main_bp.route('/')
 def index():

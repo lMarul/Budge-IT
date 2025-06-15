@@ -78,9 +78,9 @@ app = create_app()
 if __name__ == '__main__':
     # Run application with configuration from config.py
     # For Render deployment, use environment variables
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 10000))  # Render default port
     app.run(
-        host='0.0.0.0',
+        host='0.0.0.0',  # Bind to all interfaces for Render
         port=port,
         debug=False  # Set to False for production
     )
