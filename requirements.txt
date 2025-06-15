@@ -17,10 +17,10 @@ click==8.1.7
 # Event Handling
 blinker==1.6.3
 
-# Database - SQLAlchemy and PostgreSQL for Supabase (Python 3.13 compatible)
-SQLAlchemy==2.0.25
+# Database - SQLAlchemy and PostgreSQL for Supabase (Python 3.13 compatible workaround)
+SQLAlchemy==1.4.53
 psycopg2-binary==2.9.9
-Flask-SQLAlchemy==3.1.1
+Flask-SQLAlchemy==3.0.5
 python-dotenv==1.0.0
 
 # Development & Testing (Optional)
