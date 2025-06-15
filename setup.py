@@ -4,7 +4,7 @@ setup(
     name="budge-it",
     version="1.0.0",
     packages=find_packages(),
-    python_requires=">=3.8,<3.9",
+    python_requires=">=3.5,<3.6",
     install_requires=[
         "Flask==2.3.3",
         "Flask-SQLAlchemy==3.0.5",
