@@ -17,7 +17,7 @@ click==8.0.4
 # Event Handling
 blinker==1.4
 
-# Database - SQLAlchemy and PostgreSQL for Supabase (Python 3.5 compatible)
+# Database - SQLAlchemy and PostgreSQL for Supabase (Python 3.7 compatible)
 SQLAlchemy==1.4.53
 psycopg2-binary==2.9.5
 Flask-SQLAlchemy==2.5.1
