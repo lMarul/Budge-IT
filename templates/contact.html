@@ -1,0 +1,119 @@
+<!-- Nika -->
+
+<!-- Contact page template - extends the base template -->
+{% extends "base.html" %}
+
+<!-- Page title for the browser tab -->
+{% block title %}Contact Us - Budget Tracker{% endblock %}
+
+<!-- Main content block that will be inserted into the base template -->
+{% block content %}
+<!-- Main container with responsive max width, white background, shadow, and hover effects -->
+<div class="max-w-7xl mx-auto bg-white rounded-xl shadow-2xl p-8 md:p-12 transform hover:scale-105 transition-transform duration-300 ease-in-out">
+    <!-- Header section with title and subtitle -->
+    <div class="text-center mb-10">
+        <!-- Main heading with large text, primary color, and animation -->
+        <h1 class="text-5xl font-extrabold text-primary mb-4 animate-fade-in-down">Reach Out to Us!</h1>
+        <!-- Subtitle text with gray color and max width constraint -->
+        <p class="text-lg text-gray-700 max-w-2xl mx-auto">
+            We'd love to hear from you! Your feedback helps us grow and improve Budget Tracker.
+            Feel free to send us a message or connect through our channels.
+        </p>
+    </div>
+
+<!-- Team section with gray background -->
+<div class="flex flex-col items-center p-6 bg-gray-50 rounded-lg shadow-inner border border-gray-200">
+    <!-- Team section heading -->
+    <h2 class="text-3xl font-bold text-gray-800 mb-6">Meet Our Team</h2>
+    <!-- Grid container for team member cards in a single row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8">
+        <!-- Team member 1: Vince Nelmar Alobin -->
+        <div class="flex flex-col items-center text-center group">
+            <!-- Clickable team member 1 profile image with hover effects -->
+            <a href="{{ url_for('main.member_profile', member='vince') }}" class="block">
+                <img src="{{ url_for('static', filename='vinc.png') }}" alt="Vince Nelmar Alobin" 
+                     class="w-32 h-32 rounded-full object-cover border-4 border-primary shadow-lg mb-3 transform hover:rotate-3 hover:scale-110 transition-all duration-300 cursor-pointer group-hover:border-blue-500">
+            </a>
+            <!-- Team member 1 name -->
+            <h3 class="text-xl font-bold text-gray-800">Vince Nelmar Alobin</h3>
+            <!-- Team member 1 role -->
+            <p class="text-md text-gray-600 mb-3">Lead Developer</p>
+        </div>
+
+        <!-- Team member 2: Marwin Gonzales -->
+        <div class="flex flex-col items-center text-center group">
+            <!-- Clickable team member 2 profile image with hover effects -->
+            <a href="{{ url_for('main.member_profile', member='marwin') }}" class="block">
+                <img src="{{ url_for('static', filename='marwin.jpg') }}" alt="Marwin Gonzales" 
+                     class="w-32 h-32 rounded-full object-cover border-4 border-primary shadow-lg mb-3 transform hover:rotate-3 hover:scale-110 transition-all duration-300 cursor-pointer group-hover:border-blue-500">
+            </a>
+            <!-- Team member 2 name -->
+            <h3 class="text-xl font-bold text-gray-800">Marwin Gonzales</h3>
+            <!-- Team member 2 role -->
+            <p class="text-md text-gray-600 mb-0">Project Manager</p>
+            <p class="text-md text-gray-600 mb-0">Lead Systems Architect</p>
+            <p class="text-md text-gray-600 mb-0">Full-Stack Developer</p>
+        </div>
+
+        <!-- Team member 3: Vinz Szymone Mendoza -->
+        <div class="flex flex-col items-center text-center group">
+            <!-- Clickable team member 3 profile image with hover effects -->
+            <a href="{{ url_for('main.member_profile', member='vinz') }}" class="block">
+                <img src="{{ url_for('static', filename='szymone.jpg') }}" alt="Vinz Szymone Mendoza" 
+                     class="w-32 h-32 rounded-full object-cover border-4 border-primary shadow-lg mb-3 transform hover:rotate-3 hover:scale-110 transition-all duration-300 cursor-pointer group-hover:border-blue-500">
+            </a>
+            <!-- Team member 3 name -->
+            <h3 class="text-xl font-bold text-gray-800">Vinz Szymone Mendoza</h3>
+            <!-- Team member 3 role -->
+            <p class="text-md text-gray-600 mb-3">Frontend Developer</p>
+        </div>
+
+        <!-- Team member 4: Neichaela Padilla -->
+        <div class="flex flex-col items-center text-center group">
+            <!-- Clickable team member 4 profile image with hover effects -->
+            <a href="{{ url_for('main.member_profile', member='nika') }}" class="block">
+                <img src="{{ url_for('static', filename='nika.jpg') }}" alt="Neichaela Padilla" 
+                     class="w-32 h-32 rounded-full object-cover border-4 border-primary shadow-lg mb-3 transform hover:rotate-3 hover:scale-110 transition-all duration-300 cursor-pointer group-hover:border-blue-500">
+            </a>
+            <!-- Team member 4 name -->
+            <h3 class="text-xl font-bold text-gray-800">Neichaela Padilla</h3>
+            <!-- Team member 4 role -->
+            <p class="text-md text-gray-600 mb-3">UI/UX Designer</p>
+        </div>
+
+        <!-- Team member 5: Anthony Duenas -->
+        <div class="flex flex-col items-center text-center group">
+            <!-- Clickable team member 5 profile image with hover effects -->
+            <a href="{{ url_for('main.member_profile', member='anthony') }}" class="block">
+                <img src="{{ url_for('static', filename='anthony.jpg') }}" alt="Anthony Duenas" 
+                     class="w-32 h-32 rounded-full object-cover border-4 border-primary shadow-lg mb-3 transform hover:rotate-3 hover:scale-110 transition-all duration-300 cursor-pointer group-hover:border-blue-500">
+            </a>
+            <!-- Team member 5 name -->
+            <h3 class="text-xl font-bold text-gray-800">Anthony Duenas</h3>
+            <!-- Team member 5 role -->
+            <p class="text-md text-gray-600 mb-3">Tester</p>
+        </div>
+    </div>
+</div>
+
+<!-- Custom CSS styles for animations -->
+<style>
+    /* CSS keyframes definition for fade-in-down animation */
+    @keyframes fadeInDown {
+        /* Starting state: invisible and moved up */
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        /* Ending state: visible and in normal position */
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    /* CSS class to apply the fade-in-down animation */
+    .animate-fade-in-down {
+        animation: fadeInDown 1s ease-out forwards;
+    }
+</style>
+{% endblock %}

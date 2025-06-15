@@ -1,0 +1,232 @@
+<!-- Marwin -->
+
+<!-- Admin Dashboard page template - extends the base template -->
+{% extends "base.html" %}
+
+<!-- Page title for the browser tab -->
+{% block title %}Admin Dashboard{% endblock %}
+
+<!-- Main content block that will be inserted into the base template -->
+{% block content %}
+<!-- Main container with responsive max width -->
+<div class="max-w-7xl mx-auto">
+    <!-- Page header section -->
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-dark-text mb-2">Admin Dashboard</h1>
+            <p class="text-gray-600 dark:text-gray-400">Manage your budget tracking system</p>
+        </div>
+        
+        <!-- Dark mode toggle button -->
+        <div class="flex items-center space-x-4">
+            <span class="text-sm text-gray-600 dark:text-gray-400">Dark Mode</span>
+            <button id="darkModeToggle" onclick="toggleDarkMode()" 
+                    class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 bg-gray-200 dark:bg-blue-600">
+                <span class="sr-only">Toggle dark mode</span>
+                <span id="darkModeToggleDot" 
+                      class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1 dark:translate-x-6">
+                </span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics cards section - shows key system metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Total Users card -->
+        <div class="bg-white dark:bg-dark-bg-2 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <!-- User icon with blue background -->
+                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
+                    <p class="text-2xl font-semibold text-gray-900 dark:text-dark-text">{{ total_users }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Categories card -->
+        <div class="bg-white dark:bg-dark-bg-2 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <!-- Tag icon with green background -->
+                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900">
+                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Categories</p>
+                    <p class="text-2xl font-semibold text-gray-900 dark:text-dark-text">{{ total_categories }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Transactions card -->
+        <div class="bg-white dark:bg-dark-bg-2 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <!-- Clipboard icon with purple background -->
+                <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
+                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Transactions</p>
+                    <p class="text-2xl font-semibold text-gray-900 dark:text-dark-text">{{ total_transactions }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial overview section - shows total income and expenses -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Total Income card -->
+        <div class="bg-white dark:bg-dark-bg-2 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <!-- Dollar sign icon with green background -->
+                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900">
+                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Income (All Users)</p>
+                    <p class="text-2xl font-semibold text-green-600 dark:text-green-400">₱{{ "%.2f"|format(total_income) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Expense card -->
+        <div class="bg-white dark:bg-dark-bg-2 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <!-- Dollar sign icon with red background -->
+                <div class="p-3 rounded-full bg-red-100 dark:bg-red-900">
+                    <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Expense (All Users)</p>
+                    <p class="text-2xl font-semibold text-red-600 dark:text-red-400">₱{{ "%.2f"|format(total_expense) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin action cards section - provides quick access to admin functions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Manage Users action card -->
+        <a href="{{ url_for('admin.users') }}" class="bg-white dark:bg-dark-bg-2 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300">
+            <div class="flex items-center">
+                <!-- User management icon with blue background -->
+                <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-dark-text">Manage Users</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Edit usernames, emails, and passwords</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- View Database action card -->
+        <a href="{{ url_for('admin.view_database') }}" class="bg-white dark:bg-dark-bg-2 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300">
+            <div class="flex items-center">
+                <!-- Database icon with green background -->
+                <div class="p-3 rounded-full bg-green-100 dark:bg-green-900">
+                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-dark-text">View Database</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Browse all data in Excel-like format</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- System Info card (non-clickable) -->
+        <div class="bg-white dark:bg-dark-bg-2 rounded-lg shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center">
+                <!-- Information icon with purple background -->
+                <div class="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
+                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-dark-text">System Info</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Budget Tracker v1.0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign out button section -->
+    <div class="mt-8 text-right">
+        <a href="{{ url_for('auth.logout') }}" class="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl">
+            <!-- Logout icon -->
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+            Sign Out
+        </a>
+    </div>
+</div>
+
+<!-- JavaScript for dark mode toggle functionality -->
+<script>
+    // Function to toggle dark mode
+    function toggleDarkMode() {
+        const htmlElement = document.documentElement;
+        const toggleButton = document.getElementById('darkModeToggle');
+        const toggleDot = document.getElementById('darkModeToggleDot');
+        
+        if (htmlElement.classList.contains('dark')) {
+            // Switch to light mode
+            htmlElement.classList.remove('dark');
+            htmlElement.classList.add('light');
+            localStorage.setItem('theme', 'light');
+            toggleButton.classList.remove('bg-blue-600');
+            toggleButton.classList.add('bg-gray-200');
+            toggleDot.classList.remove('translate-x-6');
+            toggleDot.classList.add('translate-x-1');
+        } else {
+            // Switch to dark mode
+            htmlElement.classList.remove('light');
+            htmlElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            toggleButton.classList.remove('bg-gray-200');
+            toggleButton.classList.add('bg-blue-600');
+            toggleDot.classList.remove('translate-x-1');
+            toggleDot.classList.add('translate-x-6');
+        }
+    }
+    
+    // Initialize toggle button state on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const htmlElement = document.documentElement;
+        const toggleButton = document.getElementById('darkModeToggle');
+        const toggleDot = document.getElementById('darkModeToggleDot');
+        
+        if (htmlElement.classList.contains('dark')) {
+            // Set toggle to dark mode position
+            toggleButton.classList.remove('bg-gray-200');
+            toggleButton.classList.add('bg-blue-600');
+            toggleDot.classList.remove('translate-x-1');
+            toggleDot.classList.add('translate-x-6');
+        } else {
+            // Set toggle to light mode position
+            toggleButton.classList.remove('bg-blue-600');
+            toggleButton.classList.add('bg-gray-200');
+            toggleDot.classList.remove('translate-x-6');
+            toggleDot.classList.add('translate-x-1');
+        }
+    });
+</script>
+{% endblock %}

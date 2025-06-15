@@ -1,0 +1,173 @@
+<!-- Nika -->
+
+<!-- Account page template - extends the base template -->
+{% extends "base.html" %}
+
+<!-- Page title for the browser tab -->
+{% block title %}My Account - Budget Tracker{% endblock %}
+
+<!-- Main content block that will be inserted into the base template -->
+{% block content %}
+<!-- Main container with responsive max width -->
+<div class="max-w-4xl mx-auto">
+    <!-- Page heading with primary color and dark mode support -->
+    <h1 class="text-4xl font-bold text-primary mb-8 dark:text-dark-primary">My Account</h1>
+
+    <!-- Main account card with white background, shadow, and dark mode support -->
+    <div class="bg-white rounded-lg shadow-lg p-8 dark:bg-dark-bg-2 dark:shadow-xl">
+        <!-- Two-column grid layout for account info and stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Account information section -->
+            <div>
+                <!-- Account info heading with dark mode support -->
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 dark:text-dark-text">Account Information</h2>
+
+                <!-- Account details container with vertical spacing -->
+                <div class="space-y-4">
+                    <!-- Username field -->
+                    <div>
+                        <!-- Username label with dark mode support -->
+                        <label class="block text-sm font-medium text-gray-700 mb-2 dark:text-cbd5e0">Username</label>
+                        <!-- Username display field with gray background and dark mode support -->
+                        <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+                            <!-- Display current username from session -->
+                            {{ session.username }}
+                        </div>
+                    </div>
+
+                    <!-- Member since field -->
+                    <div>
+                        <!-- Member since label with dark mode support -->
+                        <label class="block text-sm font-medium text-gray-700 mb-2 dark:text-cbd5e0">Member Since</label>
+                        <!-- Member since display field with gray background and dark mode support -->
+                        <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+                            <!-- Display member since date with custom formatting -->
+                            {{ member_since | datetimeformat }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick stats section -->
+            <div>
+                <!-- Quick stats heading with dark mode support -->
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 dark:text-dark-text">Quick Stats</h2>
+
+                <!-- Stats container with vertical spacing -->
+                <div class="space-y-4">
+                    <!-- Total income stat card with green styling and dark mode support -->
+                    <div class="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-800 dark:border-green-700">
+                        <!-- Total income label with dark mode support -->
+                        <h3 class="font-bold text-gray-700 dark:text-dark-text">Total Income</h3>
+                        <!-- Total income amount with green color and dark mode support -->
+                        <p class="text-2xl font-bold text-green-600 dark:text-green-300">₱{{ "%.2f"|format(total_income) }}</p>
+                    </div>
+                    <!-- Total expenses stat card with red styling and dark mode support -->
+                    <div class="p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-800 dark:border-red-700">
+                        <!-- Total expenses label with dark mode support -->
+                        <h3 class="font-bold text-gray-700 dark:text-dark-text">Total Expenses</h3>
+                        <!-- Total expenses amount with red color and dark mode support -->
+                        <p class="text-2xl font-bold text-red-600 dark:text-red-300">₱{{ "%.2f"|format(total_expense) }}</p>
+                    </div>
+                    <!-- Total transactions stat card with blue styling and dark mode support -->
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-800 dark:border-blue-700">
+                        <!-- Total transactions label with dark mode support -->
+                        <h3 class="font-bold text-gray-700 dark:text-dark-text">Total Transactions</h3>
+                        <!-- Total transactions count with blue color and dark mode support -->
+                        <p class="text-2xl font-bold text-blue-600 dark:text-blue-300">{{ total_transactions }} Recorded</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account actions section with top border and dark mode support -->
+        <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+            <!-- Account actions heading with dark mode support -->
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 dark:text-dark-text">Account Actions</h2>
+
+            <!-- Two-column grid for action buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Dark mode toggle card with gray styling and dark mode support -->
+                <div class="p-6 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-dark-text rounded-lg shadow flex flex-col items-center justify-center">
+                    <!-- Dark mode toggle title -->
+                    <h3 class="font-bold mb-4 text-lg">Dark Mode</h3>
+                    <!-- Dark mode toggle switch container -->
+                    <label for="darkModeToggle" class="flex items-center cursor-pointer">
+                        <!-- Toggle switch container -->
+                        <div class="relative">
+                            <!-- Hidden checkbox input for toggle functionality -->
+                            <input type="checkbox" id="darkModeToggle" class="sr-only">
+                            <!-- Toggle track background with transition effects -->
+                            <div class="block bg-gray-600 dark:bg-primary w-16 h-8 rounded-full transition-colors duration-300"></div>
+                            <!-- Toggle dot with position transition effects -->
+                            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform transform duration-300 dark:translate-x-8"></div>
+                        </div>
+                        <!-- Toggle label text -->
+                        <div class="ml-4 text-sm font-medium">
+                            Toggle Dark Mode
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Sign out action button with red styling and dark mode support -->
+                <a href="{{ url_for('auth.logout') }}"
+                   class="p-6 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-center dark:bg-red-700 dark:hover:bg-red-800 flex flex-col items-center justify-center">
+                    <!-- Sign out button title -->
+                    <h3 class="font-bold mb-2 text-lg">Sign Out</h3>
+                    <!-- Sign out button description -->
+                    <p class="text-sm opacity-90">Logout from your account</p>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for dark mode toggle functionality -->
+<script>
+    // Wait for DOM to be fully loaded before executing script
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get reference to dark mode toggle checkbox
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        // Get reference to root HTML element for theme manipulation
+        const htmlElement = document.documentElement;
+
+        // Set initial state of toggle based on current theme class on HTML element
+        if (htmlElement.classList.contains('dark')) {
+            // If dark mode is active, check the toggle
+            darkModeToggle.checked = true;
+        } else {
+            // If light mode is active, uncheck the toggle
+            darkModeToggle.checked = false;
+        }
+
+        // Add event listener for toggle changes
+        darkModeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                // When toggle is checked, enable dark mode
+                // Check if the global enableDarkMode function exists from base.html
+                if (typeof enableDarkMode === 'function') {
+                    // Call the global enableDarkMode function
+                    enableDarkMode();
+                } else {
+                    // Fallback if the global function isn't ready (unlikely, but good practice)
+                    htmlElement.classList.add('dark');
+                    htmlElement.classList.remove('light');
+                    localStorage.setItem('theme', 'dark');
+                }
+            } else {
+                // When toggle is unchecked, disable dark mode
+                // Check if the global disableDarkMode function exists from base.html
+                if (typeof disableDarkMode === 'function') {
+                    // Call the global disableDarkMode function
+                    disableDarkMode();
+                } else {
+                    // Fallback if the global function isn't ready
+                    htmlElement.classList.add('light');
+                    htmlElement.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

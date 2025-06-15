@@ -1,0 +1,244 @@
+<!-- Nika -->
+
+<!-- Income page template - extends the base template -->
+{% extends "base.html" %}
+
+<!-- Page title for the browser tab -->
+{% block title %}Add Income - Budget Tracker{% endblock %}
+
+<!-- Main content block that will be inserted into the base template -->
+{% block content %}
+<!-- Main container with responsive max width -->
+<div class="max-w-7xl mx-auto">
+    <!-- Page header with title and navigation button -->
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-4xl font-bold text-primary dark:text-dark-primary">Add Income</h1>
+        <!-- Navigation button to switch to expense page -->
+        <a href="{{ url_for('main.expense') }}"
+           class="bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-colors font-medium">
+            Switch to Expense
+        </a>
+    </div>
+
+    <!-- Two-column layout for form and chart -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Income form card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 dark:bg-dark-bg-2 dark:shadow-xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 dark:text-dark-text">Record Income</h2>
+            
+            <!-- Income form - submits to add_transaction route -->
+            <form method="POST" action="{{ url_for('main.add_transaction') }}" class="space-y-6" onsubmit="return validateForm()">
+                <!-- Hidden input to specify transaction type as income -->
+                <input type="hidden" name="type" value="income">
+                
+                <!-- Category selection dropdown -->
+                <div>
+                    <label for="category_id" class="block text-sm font-medium text-gray-700 mb-2 dark:text-cbd5e0">Category *</label>
+                    <select id="category_id" name="category_id" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+                        <option value="">Select a category</option>
+                        {% for category in income_categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Amount input field -->
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700 mb-2 dark:text-cbd5e0">Amount *</label>
+                    <input type="number" id="amount" name="amount" step="0.01" min="0" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+                </div>
+                
+                <!-- Date input field -->
+                <div>
+                    <label for="date" class="block text-sm font-medium text-gray-700 mb-2 dark:text-cbd5e0">Date *</label>
+                    <input type="date" id="date" name="date" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+                </div>
+
+                <!-- Optional item name/description textarea -->
+                <div>
+                    <label for="Item Name" class="block text-sm font-medium text-gray-700 mb-2 dark:text-cbd5e0">Item Name (Optional)</label>
+                    <textarea id="Item Name" name="Item Name" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text"></textarea>
+                </div>
+                
+                <!-- Submit button for adding income -->
+                <button type="submit"
+                        class="w-full bg-primary text-white py-3 px-6 rounded-lg hover:bg-opacity-90 transition-colors font-medium">
+                    Add Income
+                </button>
+            </form>
+        </div>
+
+        <!-- Income chart card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 dark:bg-dark-bg-2 dark:shadow-xl">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 dark:text-dark-text">Income Breakdown (By Transaction)</h2>
+            <!-- Period selector for chart data -->
+            <div class="mb-4">
+                <label for="incomePeriodSelect" class="block text-sm font-medium text-gray-700 mb-2 dark:text-cbd5e0">View Period:</label>
+                <select id="incomePeriodSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+                    <option value="month" selected>This Month</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="year">This Year</option>
+                    <option value="all">All Time</option>
+                </select>
+            </div>
+            <!-- Chart container with no data message -->
+            <div class="relative h-64 chart-container">
+                <canvas id="incomeChart"></canvas>
+                <div class="absolute inset-0 flex items-center justify-center hidden" id="incomeNoDataMessage">
+                    <p class="text-gray-500 text-center dark:text-gray-400">No income data for this period</p>
+                </div>
+            </div>
+            <!-- Chart legend for transaction details -->
+            <div id="incomeChartLegend" class="mt-4 space-y-2">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for form functionality and chart loading -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').value = today;
+
+        // Get the period selector for the income chart
+        const incomePeriodSelect = document.getElementById('incomePeriodSelect');
+        
+        // Initial load of the income chart based on default period - now individual transactions
+        loadChart('income', incomePeriodSelect.value, 'incomeChart', 'incomeChartLegend', 'individual');
+
+        // Add event listener for period selection change
+        incomePeriodSelect.addEventListener('change', () => {
+            loadChart('income', incomePeriodSelect.value, 'incomeChart', 'incomeChartLegend', 'individual');
+        });
+    });
+
+    // Form validation function
+    function validateForm() {
+        const category_id = document.getElementById('category_id').value;
+        const amount = document.getElementById('amount').value;
+        const date = document.getElementById('date').value;
+
+        // Validate category selection
+        if (!category_id) {
+            alert('Please select a category.'); 
+            return false;
+        }
+        // Validate amount is positive
+        if (!amount || parseFloat(amount) <= 0) {
+            alert('Please enter a valid amount greater than zero.');
+            return false;
+        }
+        // Validate date selection
+        if (!date) {
+            alert('Please select a date.');
+            return false;
+        }
+        return true;
+    }
+
+    let incomePieChart; // Declare chart instance globally for this script
+
+    // Function to load and display chart data
+    function loadChart(chartType, period, canvasId, legendId, mode = 'individual') {
+        fetch(`/get_chart_data/${chartType}?period=${period}&mode=${mode}`)
+            .then(response => response.json())
+            .then(data => {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                const noDataMessageDiv = document.getElementById(`${canvasId.replace('Chart', '')}NoDataMessage`);
+
+                // Destroy existing chart if it exists
+                if (incomePieChart) {
+                    incomePieChart.destroy();
+                }
+
+                if (data && data.length > 0) {
+                    // Show canvas and hide no data message
+                    canvas.style.display = 'block';
+                    noDataMessageDiv.classList.add('hidden');
+
+                    // Extract data for chart
+                    const labels = data.map(item => item.name);
+                    const values = data.map(item => item.value);
+                    const colors = data.map(item => item.color);
+
+                    // Create new pie chart
+                    incomePieChart = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: values,
+                                backgroundColor: colors,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false, 
+                            plugins: {
+                                legend: {
+                                    display: false // Hide default legend, use custom one
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed !== null) {
+                                                label += '₱' + context.parsed.toFixed(2);
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // Create custom legend with transaction details
+                    const legend = document.getElementById(legendId);
+                    legend.innerHTML = '';
+                    data.forEach(item => {
+                        const legendItem = document.createElement('div');
+                        legendItem.className = 'flex items-center justify-between p-2 bg-gray-50 rounded dark:bg-gray-700 dark:text-dark-text';
+                        const colorClass = chartType === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                        legendItem.innerHTML = `
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 rounded" style="background-color: ${item.color}"></div>
+                                <span class="text-gray-700 dark:text-dark-text">${item.name}</span>
+                            </div>
+                            <span class="font-semibold ${colorClass}">₱${item.value.toFixed(2)}</span>
+                        `;
+                        legend.appendChild(legendItem);
+                    });
+                } else {
+                    // No data available - hide chart and show message
+                    canvas.style.display = 'none';
+                    noDataMessageDiv.classList.remove('hidden');
+                    document.getElementById(legendId).innerHTML = ''; // Clear legend
+                }
+            })
+            .catch(error => {
+                // Handle errors in chart data loading
+                console.error('Error loading chart data:', error);
+                // In case of error, hide chart and show a message
+                const canvas = document.getElementById(canvasId);
+                const noDataMessageDiv = document.getElementById(`${canvasId.replace('Chart', '')}NoDataMessage`);
+                canvas.style.display = 'none';
+                noDataMessageDiv.classList.remove('hidden');
+                noDataMessageDiv.textContent = 'Error loading chart data.';
+                document.getElementById(legendId).innerHTML = '';
+            });
+    }
+</script>
+{% endblock %}

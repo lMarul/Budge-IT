@@ -1,0 +1,369 @@
+<!-- Vince -->
+
+<!-- Categories management page template - extends the base template -->
+{% extends "base.html" %}
+
+<!-- Page title for the browser tab -->
+{% block title %}Categories - Budget Tracker{% endblock %}
+
+<!-- Main content block that will be inserted into the base template -->
+{% block content %}
+<!-- Main container with responsive max width -->
+<div class="max-w-7xl mx-auto">
+    <!-- Page heading with primary color and dark mode support -->
+    <h1 class="text-4xl font-bold text-primary mb-8 dark:text-dark-primary">Manage Categories</h1>
+
+    <!-- Flash messages display section with conditional styling -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <!-- Flash message with conditional styling based on message type and dark mode support -->
+                <div class="p-4 mb-4 text-sm rounded-lg {% if category == 'danger' %}bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200{% else %}bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200{% endif %}">
+                    <!-- Display flash message content -->
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Add new category form card with white background and dark mode support -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8 dark:bg-dark-bg-2 dark:shadow-xl">
+        <!-- Add category form heading with dark mode support -->
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 dark:text-dark-text">Add New Category</h2>
+        
+        <!-- Add category form with responsive grid layout -->
+        <form method="POST" action="{{ url_for('main.add_category') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Category name input field -->
+            <div>
+                <!-- Category name label with dark mode support -->
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Category Name</label>
+                <!-- Category name input with dark mode support -->
+                <input type="text" id="name" name="name" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+            </div>
+
+            <!-- Category type selection dropdown -->
+            <div>
+                <!-- Category type label with dark mode support -->
+                <label for="type" class="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Type</label>
+                <!-- Category type select dropdown with dark mode support -->
+                <select id="type" name="type" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+                    <!-- Income option -->
+                    <option value="income">Income</option>
+                    <!-- Expense option -->
+                    <option value="expense">Expense</option>
+                </select>
+            </div>
+
+            <!-- Category color picker -->
+            <div>
+                <!-- Category color label with dark mode support -->
+                <label for="color" class="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Color (Hex Code)</label>
+                <!-- Category color input with default blue color and dark mode support -->
+                <input type="color" id="color" name="color" value="#007bff" required
+                       class="w-full h-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600">
+                
+                <!-- Preset Crayola colors -->
+                <div class="mt-2">
+                    <div class="grid grid-cols-9 gap-1">
+                        <!-- Red -->
+                        <button type="button" onclick="setColor('#FF0000')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #FF0000;" title="Red"></button>
+                        
+                        <!-- Orange -->
+                        <button type="button" onclick="setColor('#FFA500')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #FFA500;" title="Orange"></button>
+                        
+                        <!-- Yellow -->
+                        <button type="button" onclick="setColor('#FFFF00')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #FFFF00;" title="Yellow"></button>
+                        
+                        <!-- Green -->
+                        <button type="button" onclick="setColor('#00FF00')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #00FF00;" title="Green"></button>
+                        
+                        <!-- Blue -->
+                        <button type="button" onclick="setColor('#0000FF')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #0000FF;" title="Blue"></button>
+                        
+                        <!-- Indigo -->
+                        <button type="button" onclick="setColor('#4B0082')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #4B0082;" title="Indigo"></button>
+                        
+                        <!-- Violet -->
+                        <button type="button" onclick="setColor('#800080')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #800080;" title="Violet"></button>
+                        
+                        <!-- Black -->
+                        <button type="button" onclick="setColor('#000000')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #000000;" title="Black"></button>
+                        
+                        <!-- White -->
+                        <button type="button" onclick="setColor('#FFFFFF')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #FFFFFF;" title="White"></button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit button container aligned to bottom -->
+            <div class="flex items-end">
+                <!-- Add category submit button -->
+                <button type="submit"
+                        class="w-full bg-primary text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors font-medium">
+                    Add Category
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Two-column grid layout for income and expense categories -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Income categories section card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 dark:bg-dark-bg-2 dark:shadow-xl">
+            <!-- Income categories heading with dark mode support -->
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 dark:text-dark-text">Income Categories</h2>
+            <!-- Table container with horizontal scroll -->
+            <div class="overflow-x-auto">
+                <!-- Income categories table with dark mode support -->
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                    <!-- Table header with dark mode support -->
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <!-- Name column header with dark mode support -->
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Name</th>
+                            <!-- Color column header with dark mode support -->
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Color</th>
+                            <!-- Actions column header with dark mode support -->
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <!-- Table body with dark mode support -->
+                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-dark-bg-2 dark:divide-gray-600">
+                        <!-- Loop through income categories -->
+                        {% for category in income_categories %}
+                        <!-- Category row with hover effects and dark mode support -->
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <!-- Category name cell with dark mode support -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-dark-text">{{ category.name }}</td>
+                            <!-- Category color display cell -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <!-- Color circle with category color -->
+                                <div class="w-6 h-6 rounded-full" style="background-color: {{ category.color }};"></div>
+                            </td>
+                            <!-- Actions cell with edit and delete buttons -->
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <!-- Edit button with dark mode support -->
+                                <button onclick="openEditModal({{ category.id }}, '{{ category.name }}', '{{ category.type }}', '{{ category.color }}')"
+                                        class="text-blue-600 hover:text-blue-800 transition-colors mr-3 dark:text-blue-400 dark:hover:text-blue-300">Edit</button>
+                                <!-- Delete form with confirmation -->
+                                <form action="{{ url_for('main.delete_category', category_id=category.id) }}" method="POST" class="inline-block">
+                                    <!-- Hidden user ID input -->
+                                    <input type="hidden" name="user_id" value="{{ session.user_id }}">
+                                    <!-- Delete button with dark mode support -->
+                                    <button type="submit"
+                                            class="text-red-600 hover:text-red-800 transition-colors dark:text-red-400 dark:hover:text-red-200">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <!-- No categories found message row -->
+                        <tr>
+                            <!-- No categories message with dark mode support -->
+                            <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center dark:text-gray-400">No income categories found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Expense categories section card -->
+        <div class="bg-white rounded-lg shadow-lg p-6 dark:bg-dark-bg-2 dark:shadow-xl">
+            <!-- Expense categories heading with dark mode support -->
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 dark:text-dark-text">Expense Categories</h2>
+            <!-- Table container with horizontal scroll -->
+            <div class="overflow-x-auto">
+                <!-- Expense categories table with dark mode support -->
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                    <!-- Table header with dark mode support -->
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <!-- Name column header with dark mode support -->
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Name</th>
+                            <!-- Color column header with dark mode support -->
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Color</th>
+                            <!-- Actions column header with dark mode support -->
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <!-- Table body with dark mode support -->
+                    <tbody class="bg-white divide-y divide-gray-200 dark:bg-dark-bg-2 dark:divide-gray-600">
+                        <!-- Loop through expense categories -->
+                        {% for category in expense_categories %}
+                        <!-- Category row with hover effects and dark mode support -->
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <!-- Category name cell with dark mode support -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-dark-text">{{ category.name }}</td>
+                            <!-- Category color display cell -->
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <!-- Color circle with category color -->
+                                <div class="w-6 h-6 rounded-full" style="background-color: {{ category.color }};"></div>
+                            </td>
+                            <!-- Actions cell with edit and delete buttons -->
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <!-- Edit button with dark mode support -->
+                                <button onclick="openEditModal({{ category.id }}, '{{ category.name }}', '{{ category.type }}', '{{ category.color }}')"
+                                        class="text-blue-600 hover:text-blue-800 transition-colors mr-3 dark:text-blue-400 dark:hover:text-blue-300">Edit</button>
+                                <!-- Delete form -->
+                                <form action="{{ url_for('main.delete_category', category_id=category.id) }}" method="POST" class="inline-block">
+                                    <!-- Hidden user ID input -->
+                                    <input type="hidden" name="user_id" value="{{ session.user_id }}">
+                                    <!-- Delete button with dark mode support -->
+                                    <button type="submit"
+                                            class="text-red-600 hover:text-red-800 transition-colors dark:text-red-400 dark:hover:text-red-200">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <!-- No categories found message row -->
+                        <tr>
+                            <!-- No categories message with dark mode support -->
+                            <td colspan="3" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center dark:text-gray-400">No expense categories found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Edit category modal overlay with backdrop -->
+<div id="editModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <!-- Modal content container with dark mode support -->
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-dark-bg-1">
+        <!-- Modal content wrapper -->
+        <div class="mt-3 text-center">
+            <!-- Modal heading with dark mode support -->
+            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-dark-text">Edit Category</h3>
+            <!-- Edit category form -->
+            <form id="editForm" method="POST" class="mt-4">
+                <!-- Hidden user ID input -->
+                <input type="hidden" name="user_id" value="{{ session.user_id }}">
+                
+                <!-- Category name input field -->
+                <div class="mb-4 text-left">
+                    <!-- Category name label with dark mode support -->
+                    <label for="edit_name" class="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Category Name</label>
+                    <!-- Category name input with dark mode support -->
+                    <input type="text" id="edit_name" name="name" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+                </div>
+
+                <!-- Category type selection dropdown -->
+                <div class="mb-4 text-left">
+                    <!-- Category type label with dark mode support -->
+                    <label for="edit_type" class="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Type</label>
+                    <!-- Category type select with dark mode support -->
+                    <select id="edit_type" name="type" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-dark-text">
+                        <!-- Income option -->
+                        <option value="income">Income</option>
+                        <!-- Expense option -->
+                        <option value="expense">Expense</option>
+                    </select>
+                </div>
+
+                <!-- Category color picker -->
+                <div class="mb-4 text-left">
+                    <!-- Category color label with dark mode support -->
+                    <label for="edit_color" class="block text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Color (Hex Code)</label>
+                    <!-- Category color input with dark mode support -->
+                    <input type="color" id="edit_color" name="color" required
+                           class="w-full h-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:border-gray-600">
+                    
+                    <!-- Preset Crayola colors -->
+                    <div class="mt-2">
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">Preset Colors (ROYGBIV + B&W):</p>
+                        <div class="grid grid-cols-9 gap-1">
+                            <!-- Red -->
+                            <button type="button" onclick="setEditColor('#FF0000')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #FF0000;" title="Red"></button>
+                            
+                            <!-- Orange -->
+                            <button type="button" onclick="setEditColor('#FFA500')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #FFA500;" title="Orange"></button>
+                            
+                            <!-- Yellow -->
+                            <button type="button" onclick="setEditColor('#FFFF00')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #FFFF00;" title="Yellow"></button>
+                            
+                            <!-- Green -->
+                            <button type="button" onclick="setEditColor('#00FF00')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #00FF00;" title="Green"></button>
+                            
+                            <!-- Blue -->
+                            <button type="button" onclick="setEditColor('#0000FF')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #0000FF;" title="Blue"></button>
+                            
+                            <!-- Indigo -->
+                            <button type="button" onclick="setEditColor('#4B0082')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #4B0082;" title="Indigo"></button>
+                            
+                            <!-- Violet -->
+                            <button type="button" onclick="setEditColor('#800080')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #800080;" title="Violet"></button>
+                            
+                            <!-- Black -->
+                            <button type="button" onclick="setEditColor('#000000')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #000000;" title="Black"></button>
+                            
+                            <!-- White -->
+                            <button type="button" onclick="setEditColor('#FFFFFF')" class="w-6 h-6 rounded border border-gray-300" style="background-color: #FFFFFF;" title="White"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal action buttons -->
+                <div class="flex space-x-3 pt-4">
+                    <!-- Cancel button with dark mode support -->
+                    <button type="button" onclick="closeEditModal()"
+                            class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors dark:bg-gray-600 dark:text-dark-text dark:hover:bg-gray-500">
+                        Cancel
+                    </button>
+                    <!-- Save changes button -->
+                    <button type="submit"
+                            class="flex-1 bg-primary text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for modal functionality -->
+<script>
+// Function to open edit modal and populate form fields
+function openEditModal(categoryId, name, type, color) {
+    // Set form field values from category data
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_type').value = type;
+    document.getElementById('edit_color').value = color;
+    // Set form action URL with category ID
+    document.getElementById('editForm').action = `/edit_category/${categoryId}`;
+    // Show modal by removing hidden class
+    document.getElementById('editModal').classList.remove('hidden');
+}
+
+// Function to close edit modal
+function closeEditModal() {
+    // Hide modal by adding hidden class
+    document.getElementById('editModal').classList.add('hidden');
+}
+
+// Function to set color in add category form
+function setColor(color) {
+    document.getElementById('color').value = color;
+}
+
+// Function to set color in edit category form
+function setEditColor(color) {
+    document.getElementById('edit_color').value = color;
+}
+
+// Event listener to close modal when clicking outside
+document.getElementById('editModal').addEventListener('click', function(e) {
+    // Check if click was on the modal backdrop (not the content)
+    if (e.target === this) {
+        // Close modal if clicking outside content
+        closeEditModal();
+    }
+});
+</script>
+{% endblock %}
