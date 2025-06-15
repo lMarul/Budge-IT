@@ -1,12 +1,16 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-# Force Python 3.11 installation
-echo "Installing Python 3.11..."
-pyenv install 3.11.7
-pyenv global 3.11.7
+# Build script for Render deployment
+echo "Starting build process..."
+
+# Check Python version
+python --version
 
 # Install dependencies
-echo "Installing Python dependencies..."
+pip install --upgrade pip
 pip install -r requirements.txt
+
+# Create necessary directories
+mkdir -p logs
 
 echo "Build completed successfully!" 
