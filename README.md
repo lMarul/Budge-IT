@@ -1,6 +1,6 @@
 # Budge-IT: Personal Budget Tracker
 
-A comprehensive personal budget tracking application built with Flask and SQLAlchemy, featuring user authentication, transaction management, and financial analytics.
+A comprehensive personal budget tracking application built with Flask and SQLAlchemy, featuring user authentication, transaction management, and financial analytics. Deployed on Vercel with Supabase database.
 
 ## 🚀 Features
 
@@ -10,13 +10,13 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 - **Financial Analytics**: Charts and reports for spending analysis
 - **Admin Dashboard**: User management and system overview
 - **Responsive Design**: Mobile-friendly interface
+- **Cloud Database**: Real-time sync with Supabase PostgreSQL
 
 ## 🏗️ Project Structure
 
 ```
 ├── app/                        # Main application package
-│   ├── __init__.py            # App factory
-│   ├── config.py              # Configuration settings
+│   ├── __init__.py            # App factory with database config
 │   ├── decorators.py          # Authentication decorators
 │   ├── models/                # Database models
 │   │   └── __init__.py        # SQLAlchemy models
@@ -25,26 +25,19 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 │   │   ├── auth.py            # Authentication routes
 │   │   ├── main.py            # Main application routes
 │   │   └── admin.py           # Admin dashboard routes
-│   └── utils/                 # Utility functions
-│       ├── __init__.py        # Utils package
-│       └── database.py        # Database utility functions
-├── deployment/                # Deployment configuration
-│   ├── nhost.yaml             # Nhost deployment config
-│   ├── nhost.env.example      # Nhost environment template
-│   ├── NHOST_DEPLOYMENT.md    # Nhost deployment guide
-│   └── supabase_schema.sql    # Database schema
-├── migrations/                # Database migrations
-├── templates/                 # HTML templates
-├── static/                    # CSS, JS, and static assets
+│   ├── utils/                 # Utility functions
+│   │   ├── __init__.py        # Utils package
+│   │   └── database.py        # Database utility functions
+│   ├── templates/             # HTML templates
+│   └── static/                # CSS, JS, and static assets
 ├── scripts/                   # Utility scripts
 ├── tests/                     # Test files
 ├── docs/                      # Documentation
 ├── requirements.txt           # Python dependencies
-├── runtime.txt                # Python version specification
-├── Dockerfile                 # Docker configuration
-├── .dockerignore              # Docker ignore file
 ├── vercel.json                # Vercel deployment config
 ├── wsgi.py                    # Production WSGI entry point
+├── supabase_schema.sql        # Database schema for Supabase
+├── env_template.txt           # Environment variables template
 └── README.md                  # Project documentation
 ```
 
@@ -57,10 +50,10 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 ## 🛠️ Technology Stack
 
 - **Backend**: Flask 3.0.0, SQLAlchemy 2.0.23
-- **Database**: PostgreSQL (Supabase/Nhost)
+- **Database**: PostgreSQL (Supabase)
 - **Authentication**: Flask-Login 0.6.3
 - **Frontend**: HTML5, CSS3, JavaScript, Chart.js
-- **Deployment**: Vercel, Nhost, Gunicorn 21.2.0
+- **Deployment**: Vercel, Supabase
 
 ## 📦 Installation
 
@@ -77,27 +70,23 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 
 3. **Set up environment variables**
    ```bash
-   cp deployment/nhost.env.example .env
-   # Edit .env with your configuration
+   # Copy the template
+   cp env_template.txt .env
+   # Edit .env with your Supabase database URL
    ```
 
-4. **Initialize the database**
-   ```bash
-   python -c "from app import create_app; from app.utils.database import initialize_database; app = create_app(); initialize_database(app)"
-   ```
-
-5. **Run the application**
+4. **Run the application**
    ```bash
    python wsgi.py
    ```
 
 ## 🌐 Deployment
 
-### Vercel Deployment (Recommended)
+### Vercel + Supabase Deployment (Recommended)
 
-Vercel provides fast, reliable deployment with automatic scaling and global CDN.
+This project is optimized for deployment on Vercel with Supabase database.
 
-1. **Follow the Vercel deployment guide**: [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)
+1. **Follow the complete deployment guide**: [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)
 2. **Quick start**:
    ```bash
    # Install Vercel CLI
@@ -107,34 +96,19 @@ Vercel provides fast, reliable deployment with automatic scaling and global CDN.
    vercel
    ```
 
-### Nhost Deployment
-
-Nhost provides a complete backend-as-a-service platform with PostgreSQL, authentication, and file storage.
-
-1. **Follow the Nhost deployment guide**: [deployment/NHOST_DEPLOYMENT.md](deployment/NHOST_DEPLOYMENT.md)
-2. **Quick start**:
-   ```bash
-   npm install -g nhost
-   nhost login
-   nhost init budge-it
-   nhost up
-   ```
-
 ### Database Setup
 
-1. Create a PostgreSQL database (Supabase recommended)
-2. Run the SQL schema from `deployment/supabase_schema.sql`
-3. Configure Row Level Security (RLS) policies if needed
-4. Set the `DATABASE_URL` environment variable
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Get your database connection string from Supabase dashboard
+3. Set the `DATABASE_URL` environment variable in Vercel
+4. The app will automatically create tables on first run
 
 ## 📚 Documentation
 
 - [API Documentation](docs/API_DOCUMENTATION.md)
-- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
 - [Project Overview](docs/PROJECT_OVERVIEW.md)
 - [Testing Guide](docs/TESTING_GUIDE.md)
-- [Vercel Deployment Guide](VERCEL_DEPLOYMENT.md)
-- [Nhost Deployment Guide](deployment/NHOST_DEPLOYMENT.md)
+- [Vercel + Supabase Deployment Guide](VERCEL_DEPLOYMENT.md)
 
 ## 🔧 Development
 
@@ -148,8 +122,10 @@ python -m pytest tests/
 python scripts/create_sample_data.py
 ```
 
-### Database Migration
-The application automatically migrates from JSON to SQLAlchemy on first run.
+### Database Connection Test
+```bash
+python test_database_connection.py
+```
 
 ### Health Check
 Your application includes a health check endpoint at `/health` for deployment monitoring.
@@ -176,22 +152,24 @@ This is an academic project. For questions or issues, please contact the develop
    vercel
    ```
 
-3. **Access your app** at the provided URL!
+3. **Set up Supabase**:
+   - Create a Supabase project
+   - Get your database URL
+   - Add `DATABASE_URL` to Vercel environment variables
 
-### Deploy to Nhost in 5 minutes:
+4. **Access your app** at the provided URL!
 
-1. **Install Nhost CLI**:
-   ```bash
-   npm install -g nhost
-   ```
+For detailed instructions, see [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md).
 
-2. **Deploy**:
-   ```bash
-   nhost login
-   nhost init budge-it
-   nhost up
-   ```
+## 🔗 Live Demo
 
-3. **Access your app** at the provided URL!
+Once deployed, your app will be available at:
+- **Vercel URL**: `https://your-project-name.vercel.app`
+- **Database**: Supabase dashboard for data management
 
-For detailed instructions, see [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md) or [deployment/NHOST_DEPLOYMENT.md](deployment/NHOST_DEPLOYMENT.md).
+## 🛡️ Security
+
+- Environment variables for all sensitive data
+- SQLAlchemy ORM for secure database operations
+- Flask-Login for session management
+- Supabase Row Level Security (RLS) policies

@@ -13,19 +13,21 @@ def create_app(config_name=None):
                 template_folder='templates',
                 static_folder='static')
     
-    # Configure the app
-    if config_name == 'production' or os.environ.get('FLASK_ENV') == 'production':
-        # Production configuration
+    # Configure the app - prioritize DATABASE_URL environment variable
+    if os.environ.get('DATABASE_URL'):
+        # Production configuration with cloud database
         app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['DEBUG'] = False
+        print(f"🔗 Using cloud database: {os.environ.get('DATABASE_URL')[:50]}...")
     else:
-        # Development configuration
+        # Development configuration with local SQLite
         app.config['SECRET_KEY'] = 'dev-secret-key'
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['DEBUG'] = True
+        print("💾 Using local SQLite database")
     
     # Initialize extensions with app
     db.init_app(app)
@@ -51,6 +53,10 @@ def create_app(config_name=None):
     
     # Create database tables
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+            print("✅ Database tables created/verified successfully!")
+        except Exception as e:
+            print(f"⚠️ Database initialization warning: {e}")
     
     return app 
