@@ -7,9 +7,9 @@ from datetime import datetime, timedelta, date
 # Import login decorator for protected routes
 from decorators import login_required
 # Import models for database operations
-from database.models import User, Category, Transaction
+from app.models import User, Category, Transaction
 # Import database utility functions
-from database.utils import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id
+from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id
 
 # Create main blueprint for organizing application routes
 main_bp = Blueprint('main', __name__)
@@ -475,7 +475,7 @@ def edit_category(category_id):
                 category_to_edit.name = new_name
                 category_to_edit.category_type = new_type
                 category_to_edit.color = new_color
-                from database.utils import save_database
+                from app.utils.database import save_database
                 save_database()
                 flash('Category updated successfully!', 'success')
                 return redirect(url_for('main.categories'))
@@ -509,8 +509,8 @@ def delete_category(category_id):
     # Find and delete category
     category_to_delete = Category.query.filter_by(id=category_id, user_id=user_id).first()
     if category_to_delete:
-        from database.utils import save_database
-        from database.models import db
+        from app.utils.database import save_database
+        from app.models import db
         db.session.delete(category_to_delete)
         save_database()
         flash(f"Category deleted successfully! Associated transactions will be marked as Uncategorized.", 'success')

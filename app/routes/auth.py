@@ -5,11 +5,11 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 # Import datetime for timestamp handling
 from datetime import datetime
 # Import User and Category models for database operations
-from database.models import User, Category
+from app.models import User, Category
 # Import login decorator for protected routes
 from decorators import login_required
 # Import database utility functions
-from database.utils import create_user, authenticate_user, get_user_by_username, create_category
+from app.utils.database import create_user, authenticate_user, get_user_by_username, create_category
 
 # Create authentication blueprint for organizing routes
 auth_bp = Blueprint('auth', __name__)

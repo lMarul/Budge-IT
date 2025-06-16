@@ -29,13 +29,10 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 │       ├── __init__.py        # Utils package
 │       └── database.py        # Database utility functions
 ├── deployment/                # Deployment configuration
-│   ├── render.yaml            # Render deployment config
 │   ├── nhost.yaml             # Nhost deployment config
 │   ├── nhost.env.example      # Nhost environment template
 │   ├── NHOST_DEPLOYMENT.md    # Nhost deployment guide
-│   ├── Procfile              # Heroku deployment config
-│   ├── build.sh              # Build script
-│   └── supabase_schema.sql   # Database schema
+│   └── supabase_schema.sql    # Database schema
 ├── migrations/                # Database migrations
 ├── templates/                 # HTML templates
 ├── static/                    # CSS, JS, and static assets
@@ -45,7 +42,7 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 ├── requirements.txt           # Python dependencies
 ├── runtime.txt                # Python version specification
 ├── Dockerfile                 # Docker configuration
-├── .dockerignore             # Docker ignore file
+├── .dockerignore              # Docker ignore file
 ├── wsgi.py                    # Production WSGI entry point
 └── README.md                  # Project documentation
 ```
@@ -59,10 +56,10 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 ## 🛠️ Technology Stack
 
 - **Backend**: Flask 3.0.0, SQLAlchemy 2.0.23
-- **Database**: PostgreSQL (Supabase/Nhost)
+- **Database**: PostgreSQL (Nhost)
 - **Authentication**: Flask-Login 0.6.3
 - **Frontend**: HTML5, CSS3, JavaScript, Chart.js
-- **Deployment**: Render, Nhost, Heroku, Gunicorn 21.2.0
+- **Deployment**: Nhost, Gunicorn 21.2.0
 
 ## 📦 Installation
 
@@ -108,22 +105,11 @@ Nhost provides a complete backend-as-a-service platform with PostgreSQL, authent
    nhost up
    ```
 
-### Render Deployment
-
-1. **Connect your GitHub repository to Render**
-2. **Set environment variables**:
-   - `SECRET_KEY`: Your Flask secret key
-   - `DATABASE_URL`: Your Supabase PostgreSQL connection string
-   - `FLASK_ENV`: production
-   - `FLASK_APP`: wsgi.py
-
-3. **Deploy**: Render will automatically deploy using the configuration in `deployment/render.yaml`
-
 ### Database Setup
 
-1. Create a PostgreSQL database (Supabase, Nhost, or your preferred provider)
+1. Create a PostgreSQL database in Nhost
 2. Run the SQL schema from `deployment/supabase_schema.sql`
-3. Configure Row Level Security (RLS) policies
+3. Configure Row Level Security (RLS) policies if needed
 4. Set the `DATABASE_URL` environment variable
 
 ## 📚 Documentation

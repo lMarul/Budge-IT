@@ -5,9 +5,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 # Import admin decorator for protected routes
 from decorators import admin_required
 # Import models for database operations
-from database.models import User, Category, Transaction
+from app.models import User, Category, Transaction
 # Import database utility functions
-from database.utils import get_user_by_id, save_database
+from app.utils.database import get_user_by_id, save_database
 # Import JSON for data serialization
 import json
 
@@ -141,7 +141,7 @@ def delete_user(user_id):
         return redirect(url_for('admin.users'))
     
     # Delete user and all associated data (cascade will handle categories and transactions)
-    from database.models import db
+    from app.models import db
     username = user_to_delete.username
     db.session.delete(user_to_delete)
     save_database()
