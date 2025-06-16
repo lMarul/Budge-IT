@@ -5,7 +5,8 @@ import json
 from datetime import datetime
 from flask import flash
 import logging
-from app.models import db, User, Category, Transaction
+from app import db
+from app.models import User, Category, Transaction
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

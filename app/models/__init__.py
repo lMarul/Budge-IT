@@ -2,12 +2,11 @@
 
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from sqlalchemy import event
 
-# Initialize SQLAlchemy
-db = SQLAlchemy()
+# Import db from the main app module to avoid conflicts
+from app import db
 
 class User(db.Model):
     """
