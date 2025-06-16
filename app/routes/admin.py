@@ -30,22 +30,36 @@ def dashboard():
     Returns:
         str: Rendered admin dashboard template with statistics
     """
-    # Get database statistics using SQLAlchemy
-    total_users = User.query.count()
-    total_categories = Category.query.count()
-    total_transactions = Transaction.query.count()
+    try:
+        # Get database statistics using SQLAlchemy
+        total_users = User.query.count()
+        total_categories = Category.query.count()
+        total_transactions = Transaction.query.count()
+        
+        # Calculate total income and expense across all users
+        total_income = sum(t.amount for t in Transaction.query.filter_by(transaction_type='income').all())
+        total_expense = sum(t.amount for t in Transaction.query.filter_by(transaction_type='expense').all())
+        
+        # Render admin dashboard with statistics
+        return render_template('admin_functions/admin_dashboard.html',
+                               total_users=total_users,
+                               total_categories=total_categories,
+                               total_transactions=total_transactions,
+                               total_income=total_income,
+                               total_expense=total_expense)
     
-    # Calculate total income and expense across all users
-    total_income = sum(t.amount for t in Transaction.query.filter_by(transaction_type='income').all())
-    total_expense = sum(t.amount for t in Transaction.query.filter_by(transaction_type='expense').all())
-    
-    # Render admin dashboard with statistics
-    return render_template('admin_functions/admin_dashboard.html',
-                           total_users=total_users,
-                           total_categories=total_categories,
-                           total_transactions=total_transactions,
-                           total_income=total_income,
-                           total_expense=total_expense)
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in admin dashboard route: {e}")
+        
+        # Return fallback values if database connection fails
+        flash('Unable to load admin dashboard. Please try again later.', 'warning')
+        return render_template('admin_functions/admin_dashboard.html',
+                               total_users=0,
+                               total_categories=0,
+                               total_transactions=0,
+                               total_income=0,
+                               total_expense=0)
 
 # Route: /admin/users - Shows user management page with all users
 @admin_bp.route('/admin/users')
@@ -61,10 +75,19 @@ def users():
     Returns:
         str: Rendered user management template with user list
     """
-    # Get all users for admin user management page
-    all_users = User.query.all()
-    # Render user management template
-    return render_template('admin_functions/admin_manage_users.html', users=all_users)
+    try:
+        # Get all users for admin user management page
+        all_users = User.query.all()
+        # Render user management template
+        return render_template('admin_functions/admin_manage_users.html', users=all_users)
+    
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in admin users route: {e}")
+        
+        # Return empty user list if database connection fails
+        flash('Unable to load users. Please try again later.', 'warning')
+        return render_template('admin_functions/admin_manage_users.html', users=[])
 
 # Route: /admin/edit_user/<user_id> - Updates user account information
 @admin_bp.route('/admin/edit_user/<int:user_id>', methods=['POST'])
@@ -83,15 +106,15 @@ def edit_user(user_id):
     Returns:
         str: Redirect response to user management page
     """
-    # Find user to edit
-    user_to_edit = User.query.get(user_id)
-    
-    # Check if user exists
-    if not user_to_edit:
-        flash('User not found.', 'danger')
-        return redirect(url_for('admin.users'))
-    
     try:
+        # Find user to edit
+        user_to_edit = User.query.get(user_id)
+        
+        # Check if user exists
+        if not user_to_edit:
+            flash('User not found.', 'danger')
+            return redirect(url_for('admin.users'))
+        
         # Get form data for user update
         new_username = request.form['username']
         new_email = request.form['email']
@@ -110,9 +133,11 @@ def edit_user(user_id):
             user_to_edit.set_password(new_password)
         save_database()
         flash('User updated successfully!', 'success')
+        
     except Exception as e:
         # Handle any errors during update
-        flash(f'An error occurred: {e}', 'danger')
+        print(f"Error in edit user route: {e}")
+        flash(f'An error occurred while updating user: {e}', 'danger')
     
     # Redirect back to user management page
     return redirect(url_for('admin.users'))
@@ -134,21 +159,28 @@ def delete_user(user_id):
     Returns:
         str: Redirect response to user management page
     """
-    # Get user to delete from database
-    user_to_delete = User.query.get(user_id)
+    try:
+        # Get user to delete from database
+        user_to_delete = User.query.get(user_id)
+        
+        # Check if user exists
+        if not user_to_delete:
+            flash('User not found.', 'danger')
+            return redirect(url_for('admin.users'))
+        
+        # Delete user and all associated data (cascade will handle categories and transactions)
+        from app.models import db
+        username = user_to_delete.username
+        db.session.delete(user_to_delete)
+        save_database()
+        # Show success message with deleted username
+        flash(f"User '{username}' and all associated data deleted successfully!", 'success')
+        
+    except Exception as e:
+        # Handle any errors during deletion
+        print(f"Error in delete user route: {e}")
+        flash(f'An error occurred while deleting user: {e}', 'danger')
     
-    # Check if user exists
-    if not user_to_delete:
-        flash('User not found.', 'danger')
-        return redirect(url_for('admin.users'))
-    
-    # Delete user and all associated data (cascade will handle categories and transactions)
-    from app.models import db
-    username = user_to_delete.username
-    db.session.delete(user_to_delete)
-    save_database()
-    # Show success message with deleted username
-    flash(f"User '{username}' and all associated data deleted successfully!", 'success')
     return redirect(url_for('admin.users'))
 
 # Route: /admin/database - Shows raw database content for debugging
@@ -165,21 +197,36 @@ def view_database():
     Returns:
         str: Rendered database viewer template with all data
     """
-    # Get database data for admin database viewer
-    all_users = User.query.all()
-    all_categories = Category.query.all()
-    all_transactions = Transaction.query.all()
+    try:
+        # Get database data for admin database viewer
+        all_users = User.query.all()
+        all_categories = Category.query.all()
+        all_transactions = Transaction.query.all()
+        
+        # Convert data to JSON format for display
+        users_json = json.dumps([user.to_dict() for user in all_users], indent=4)
+        categories_json = json.dumps([category.to_dict() for category in all_categories], indent=4)
+        transactions_json = json.dumps([transaction.to_dict() for transaction in all_transactions], indent=4)
+        
+        # Render database viewer template with all data
+        return render_template('admin_functions/admin_view_database.html',
+                               users_json=users_json,
+                               categories_json=categories_json,
+                               transactions_json=transactions_json,
+                               users=all_users,
+                               categories=all_categories,
+                               transactions=all_transactions)
     
-    # Convert data to JSON format for display
-    users_json = json.dumps([user.to_dict() for user in all_users], indent=4)
-    categories_json = json.dumps([category.to_dict() for category in all_categories], indent=4)
-    transactions_json = json.dumps([transaction.to_dict() for transaction in all_transactions], indent=4)
-    
-    # Render database viewer template with all data
-    return render_template('admin_functions/admin_view_database.html',
-                           users_json=users_json,
-                           categories_json=categories_json,
-                           transactions_json=transactions_json,
-                           users=all_users,
-                           categories=all_categories,
-                           transactions=all_transactions) 
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in admin database view route: {e}")
+        
+        # Return empty data if database connection fails
+        flash('Unable to load database content. Please try again later.', 'warning')
+        return render_template('admin_functions/admin_view_database.html',
+                               users_json='[]',
+                               categories_json='[]',
+                               transactions_json='[]',
+                               users=[],
+                               categories=[],
+                               transactions=[]) 
