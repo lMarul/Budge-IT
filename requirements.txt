@@ -29,6 +29,6 @@ Flask-Login==0.6.3
 gunicorn==21.2.0
 
 # Optional Development Dependencies (uncomment if needed)
-# pytest==7.4.0
-# pytest-flask==1.2.0
-# coverage==7.2.7 
+pytest==7.4.0
+pytest-flask==1.2.0
+coverage==7.2.7 
