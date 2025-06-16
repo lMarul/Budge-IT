@@ -29,6 +29,32 @@ def health_check():
         'service': 'budge-it'
     }), 200
 
+# Database connection test endpoint
+@main_bp.route('/test-db')
+def test_database():
+    """
+    Test database connection and return status.
+    
+    Returns:
+        dict: Database connection status
+    """
+    try:
+        from app.models import User
+        user_count = User.query.count()
+        return jsonify({
+            'status': 'connected',
+            'user_count': user_count,
+            'timestamp': datetime.utcnow().isoformat(),
+            'message': 'Database connection successful'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat(),
+            'message': 'Database connection failed'
+        }), 500
+
 # Route: / - Entry point, redirects based on authentication status
 @main_bp.route('/')
 def index():
@@ -67,19 +93,30 @@ def dashboard():
     Returns:
         str: Rendered dashboard template with financial summary
     """
-    # Get current user ID from session
-    user_id = session['user_id']
-    # Get all transactions for current user
-    user_transactions = get_transactions_by_user(user_id)
+    try:
+        # Get current user ID from session
+        user_id = session['user_id']
+        # Get all transactions for current user
+        user_transactions = get_transactions_by_user(user_id)
 
-    # Calculate total income and expenses for user
-    total_income = sum(t.amount for t in user_transactions if t.transaction_type == 'income')
-    total_expense = sum(t.amount for t in user_transactions if t.transaction_type == 'expense')
+        # Calculate total income and expenses for user
+        total_income = sum(t.amount for t in user_transactions if t.transaction_type == 'income')
+        total_expense = sum(t.amount for t in user_transactions if t.transaction_type == 'expense')
 
-    # Render dashboard with financial summary
-    return render_template('dashboard.html',
-                           total_income=total_income,
-                           total_expense=total_expense)
+        # Render dashboard with financial summary
+        return render_template('dashboard.html',
+                               total_income=total_income,
+                               total_expense=total_expense)
+    
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in dashboard route: {e}")
+        
+        # Return fallback values if database connection fails
+        flash('Unable to load dashboard information. Please try again later.', 'warning')
+        return render_template('dashboard.html',
+                               total_income=0,
+                               total_expense=0)
 
 # Route: /income - Shows income entry form with user's income categories
 @main_bp.route('/income')
@@ -94,22 +131,31 @@ def income():
     Returns:
         str: Rendered income template with categories
     """
-    # Get current user ID and income categories
-    user_id = session['user_id']
-    income_categories = get_categories_by_user_and_type(user_id, 'income')
+    try:
+        # Get current user ID and income categories
+        user_id = session['user_id']
+        income_categories = get_categories_by_user_and_type(user_id, 'income')
+        
+        # Convert categories to the format expected by the frontend
+        categories_data = []
+        for category in income_categories:
+            categories_data.append({
+                'id': category.id,
+                'name': category.name,
+                'type': category.category_type,
+                'color': category.color
+            })
+        
+        # Render income page with categories
+        return render_template('income.html', income_categories=categories_data)
     
-    # Convert categories to the format expected by the frontend
-    categories_data = []
-    for category in income_categories:
-        categories_data.append({
-            'id': category.id,
-            'name': category.name,
-            'type': category.category_type,
-            'color': category.color
-        })
-    
-    # Render income page with categories
-    return render_template('income.html', income_categories=categories_data)
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in income route: {e}")
+        
+        # Return empty categories if database connection fails
+        flash('Unable to load categories. Please try again later.', 'warning')
+        return render_template('income.html', income_categories=[])
 
 # Route: /expense - Shows expense entry form with user's expense categories
 @main_bp.route('/expense')
@@ -124,22 +170,31 @@ def expense():
     Returns:
         str: Rendered expense template with categories
     """
-    # Get current user ID and expense categories
-    user_id = session['user_id']
-    expense_categories = get_categories_by_user_and_type(user_id, 'expense')
+    try:
+        # Get current user ID and expense categories
+        user_id = session['user_id']
+        expense_categories = get_categories_by_user_and_type(user_id, 'expense')
+        
+        # Convert categories to the format expected by the frontend
+        categories_data = []
+        for category in expense_categories:
+            categories_data.append({
+                'id': category.id,
+                'name': category.name,
+                'type': category.category_type,
+                'color': category.color
+            })
+        
+        # Render expense page with categories
+        return render_template('expense.html', expense_categories=categories_data)
     
-    # Convert categories to the format expected by the frontend
-    categories_data = []
-    for category in expense_categories:
-        categories_data.append({
-            'id': category.id,
-            'name': category.name,
-            'type': category.category_type,
-            'color': category.color
-        })
-    
-    # Render expense page with categories
-    return render_template('expense.html', expense_categories=categories_data)
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in expense route: {e}")
+        
+        # Return empty categories if database connection fails
+        flash('Unable to load categories. Please try again later.', 'warning')
+        return render_template('expense.html', expense_categories=[])
 
 # Route: /add_transaction - Creates new income or expense transaction
 @main_bp.route('/add_transaction', methods=['POST'])
@@ -675,25 +730,38 @@ def account():
     Returns:
         str: Rendered account template with user statistics
     """
-    # Get current user ID and transaction data
-    user_id = session['user_id']
-    user_transactions = get_transactions_by_user(user_id)
-    
-    # Calculate account statistics
-    all_time_income = sum(t.amount for t in user_transactions if t.transaction_type == 'income')
-    all_expense = sum(t.amount for t in user_transactions if t.transaction_type == 'expense')
-    total_transactions = len(user_transactions)
+    try:
+        # Get current user ID and transaction data
+        user_id = session['user_id']
+        user_transactions = get_transactions_by_user(user_id)
+        
+        # Calculate account statistics
+        all_time_income = sum(t.amount for t in user_transactions if t.transaction_type == 'income')
+        all_expense = sum(t.amount for t in user_transactions if t.transaction_type == 'expense')
+        total_transactions = len(user_transactions)
 
-    # Get user creation date - handle missing created_at field
-    user_info = User.query.get(user_id)
-    member_since = user_info.created_at.isoformat() if user_info and user_info.created_at else 'N/A'
+        # Get user creation date - handle missing created_at field
+        user_info = User.query.get(user_id)
+        member_since = user_info.created_at.isoformat() if user_info and user_info.created_at else 'N/A'
+        
+        # Render account page with user statistics
+        return render_template('account.html',
+                               total_income=all_time_income,
+                               total_expense=all_expense,
+                               total_transactions=total_transactions,
+                               member_since=member_since)
     
-    # Render account page with user statistics
-    return render_template('account.html',
-                           total_income=all_time_income,
-                           total_expense=all_expense,
-                           total_transactions=total_transactions,
-                           member_since=member_since)
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error in account route: {e}")
+        
+        # Return fallback values if database connection fails
+        flash('Unable to load account information. Please try again later.', 'warning')
+        return render_template('account.html',
+                               total_income=0,
+                               total_expense=0,
+                               total_transactions=0,
+                               member_since='N/A')
 
 # Route: /about - Shows application information and features
 @main_bp.route('/about')
