@@ -1,4 +1,4 @@
-# Budget Tracker Flask Application - Vercel Optimized
+# Budget Tracker Flask Application - Render Optimized
 # Core Flask Framework
 Flask==3.0.0
 Werkzeug==3.0.1
@@ -23,8 +23,8 @@ Flask-SQLAlchemy==3.1.1
 python-dotenv==1.0.0
 Flask-Login==0.6.3
 
-# Production Deployment (Vercel uses its own serverless runtime)
-# gunicorn==21.2.0  # Not needed for Vercel
+# Production Deployment
+gunicorn==21.2.0
 
 # Development Dependencies (commented out for production)
 # pytest==7.4.0
