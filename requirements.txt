@@ -1,6 +1,4 @@
-# Budge-It Flask Application Dependencies
-# Single requirements file for deployment platforms like Render
-
+# Budget Tracker Flask Application - Vercel Optimized
 # Core Flask Framework
 Flask==3.0.0
 Werkzeug==3.0.1
@@ -25,10 +23,10 @@ Flask-SQLAlchemy==3.1.1
 python-dotenv==1.0.0
 Flask-Login==0.6.3
 
-# Production Deployment
-gunicorn==21.2.0
+# Production Deployment (Vercel uses its own serverless runtime)
+# gunicorn==21.2.0  # Not needed for Vercel
 
-# Optional Development Dependencies (uncomment if needed)
-pytest==7.4.0
-pytest-flask==1.2.0
-coverage==7.2.7 
+# Development Dependencies (commented out for production)
+# pytest==7.4.0
+# pytest-flask==1.2.0
+# coverage==7.2.7 
