@@ -77,15 +77,30 @@ def users():
     try:
         # Get all users for admin user management page
         all_users = User.query.all()
+        
+        # Convert users to serializable format for JavaScript
+        users_data = []
+        for user in all_users:
+            users_data.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'created_at': user.created_at.isoformat() if user.created_at else None
+            })
+        
         # Render user management template
-        return render_template('admin_functions/admin_manage_users.html', users=all_users)
+        return render_template('admin_functions/admin_manage_users.html', 
+                               users=all_users, 
+                               users_json=users_data)
     
     except Exception as e:
         # Log the error for debugging
         print(f"Error in admin users route: {e}")
         
         # Return empty user list if database connection fails
-        return render_template('admin_functions/admin_manage_users.html', users=[])
+        return render_template('admin_functions/admin_manage_users.html', 
+                               users=[], 
+                               users_json=[])
 
 # Route: /admin/edit_user/<user_id> - Updates user account information
 @admin_bp.route('/admin/edit_user/<int:user_id>', methods=['POST'])
