@@ -34,6 +34,10 @@ def create_app(config_name=None):
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     
+    # Register custom Jinja2 filters
+    from .utils.database import datetimeformat
+    app.jinja_env.filters['datetimeformat'] = datetimeformat
+    
     # Import and register blueprints
     from .routes.auth import auth_bp
     from .routes.main import main_bp
