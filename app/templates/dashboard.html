@@ -22,8 +22,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="bg-white rounded-lg shadow-lg p-6 md:col-span-2 dark:bg-dark-bg-2 dark:shadow-xl text-center">
                 <h3 class="text-lg font-semibold text-gray-700 mb-2 dark:text-dark-text">Net Balance (All Time)</h3>
-                <!-- Net balance with conditional color (green for positive, red for negative) -->
-                <p class="text-3xl font-bold {% if total_income - total_expense >= 0 %}text-green-600{% else %}text-red-600{% endif %} dark:text-dark-text">
+                <!-- Net balance with dynamic color based on value -->
+                <p class="text-3xl font-bold {{ (total_income - total_expense) | amount_color }} dark:text-dark-text">
                     ₱{{ "%.2f"|format(total_income - total_expense) }}
                 </p>
             </div>  

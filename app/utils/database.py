@@ -40,6 +40,41 @@ def datetimeformat(value, format='%B %d, %Y'):
         # Return N/A for invalid date formats
         return "N/A"
 
+def amount_color(value):
+    """
+    Custom Jinja2 filter for determining color class based on amount value.
+    
+    This function takes a numeric value and returns the appropriate CSS color class:
+    - Gray for zero values
+    - Green for positive values  
+    - Red for negative values
+    
+    Args:
+        value: Numeric value (int, float, or string that can be converted to float)
+    
+    Returns:
+        str: CSS color class string for Tailwind CSS
+    """
+    try:
+        # Convert to float and handle edge cases
+        if value is None:
+            return "text-gray-500 dark:text-gray-400"
+        
+        # Convert to float, handling string inputs
+        num_value = float(value)
+        
+        # Handle edge cases
+        if num_value == 0:
+            return "text-gray-500 dark:text-gray-400"
+        elif num_value > 0:
+            return "text-green-600 dark:text-green-400"
+        else:  # num_value < 0
+            return "text-red-600 dark:text-red-400"
+            
+    except (ValueError, TypeError):
+        # Return gray for invalid values
+        return "text-gray-500 dark:text-gray-400"
+
 # --- Database Helper Functions (SQLAlchemy) ---
 
 def get_next_id(model_class):

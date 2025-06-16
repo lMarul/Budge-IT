@@ -152,8 +152,8 @@
                     </td>
                     {# Item Name column - shows item name, description, or dash if empty #}
                     <td class="py-2 px-4 text-sm text-gray-900 dark:text-dark-text">{{ transaction.item_name or '-' }}</td>
-                    {# Amount column with conditional color styling (green for income, red for expense) #}
-                    <td class="py-2 px-4 font-semibold {% if transaction.transaction_type == 'income' %}text-green-600 dark:text-green-400{% else %}text-red-600 dark:text-red-400{% endif %}">₱{{ "%.2f"|format(transaction.amount|float) }}</td>
+                    {# Amount column with dynamic color styling based on amount value #}
+                    <td class="py-2 px-4 font-semibold {{ transaction.amount | amount_color }}">₱{{ "%.2f"|format(transaction.amount|float) }}</td>
                     {# Transaction type column (capitalized) #}
                     <td class="py-2 px-4 capitalize text-sm text-gray-900 dark:text-dark-text">{{ transaction.transaction_type }}</td>
                     {# Actions column with edit and delete buttons #}

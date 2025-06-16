@@ -59,15 +59,15 @@
                     <div class="p-4 bg-green-50 border border-green-200 rounded-lg dark:bg-green-800 dark:border-green-700">
                         <!-- Total income label with dark mode support -->
                         <h3 class="font-bold text-gray-700 dark:text-dark-text">Total Income</h3>
-                        <!-- Total income amount with green color and dark mode support -->
-                        <p class="text-2xl font-bold text-green-600 dark:text-green-300">₱{{ "%.2f"|format(total_income) }}</p>
+                        <!-- Total income amount with dynamic color -->
+                        <p class="text-2xl font-bold {{ total_income | amount_color }}">₱{{ "%.2f"|format(total_income) }}</p>
                     </div>
                     <!-- Total expenses stat card with red styling and dark mode support -->
                     <div class="p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-800 dark:border-red-700">
                         <!-- Total expenses label with dark mode support -->
                         <h3 class="font-bold text-gray-700 dark:text-dark-text">Total Expenses</h3>
-                        <!-- Total expenses amount with red color and dark mode support -->
-                        <p class="text-2xl font-bold text-red-600 dark:text-red-300">₱{{ "%.2f"|format(total_expense) }}</p>
+                        <!-- Total expenses amount with dynamic color -->
+                        <p class="text-2xl font-bold {{ total_expense | amount_color }}">₱{{ "%.2f"|format(total_expense) }}</p>
                     </div>
                     <!-- Total transactions stat card with blue styling and dark mode support -->
                     <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-800 dark:border-blue-700">

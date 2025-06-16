@@ -94,7 +94,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Income (All Users)</p>
-                    <p class="text-2xl font-semibold text-green-600 dark:text-green-400">₱{{ "%.2f"|format(total_income) }}</p>
+                    <p class="text-2xl font-semibold {{ total_income | amount_color }}">₱{{ "%.2f"|format(total_income) }}</p>
                 </div>
             </div>
         </div>
@@ -110,7 +110,7 @@
                 </div>
                 <div class="ml-4">
                     <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Expense (All Users)</p>
-                    <p class="text-2xl font-semibold text-red-600 dark:text-red-400">₱{{ "%.2f"|format(total_expense) }}</p>
+                    <p class="text-2xl font-semibold {{ total_expense | amount_color }}">₱{{ "%.2f"|format(total_expense) }}</p>
                 </div>
             </div>
         </div>
