@@ -433,37 +433,50 @@ def categories():
     expense_categories = get_categories_by_user_and_type(user_id, 'expense')
     return render_template('categories.html', income_categories=income_categories, expense_categories=expense_categories)
 
-# Route: /add_category - Creates new income or expense category
+# Route: /add_category - Creates new income or expense transaction
 @main_bp.route('/add_category', methods=['POST'])
 @login_required
 def add_category():
     """
     Handles the creation of new categories.
-    
+
     This route processes form submissions to create new income or expense
     categories. It validates that all required fields are provided and
     checks for duplicate category names within the same type.
-    
+
     Returns:
         str: Redirect response to categories page with success/error message
     """
-    # Get current user ID and form data
-    user_id = session['user_id']
-    name = request.form['name']
-    category_type = request.form['type']
-    color = request.form['color']
+    try:
+        # Get current user ID and form data
+        user_id = session['user_id']
+        name = request.form['name']
+        category_type = request.form['type']
+        color = request.form['color']
 
-    # Basic validation for required fields
-    if not name or not category_type or not color:
-        return redirect(url_for('main.categories'))
+        # Basic validation for required fields
+        if not name or not category_type or not color:
+            flash('All fields are required!', 'danger')
+            return redirect(url_for('main.categories'))
 
-    # Check if category name already exists for this user and type
-    existing_categories = get_categories_by_user_and_type(user_id, category_type)
-    if any(c['name'].lower() == name.lower() for c in existing_categories):
-        return redirect(url_for('main.categories'))
+        # Check if category name already exists for this user and type
+        existing_categories = get_categories_by_user_and_type(user_id, category_type)
+        if any(c.name.lower() == name.lower() for c in existing_categories):
+            flash('Category with this name already exists for this type!', 'danger')
+            return redirect(url_for('main.categories'))
 
-    # Create new category in database
-    create_category(user_id, name, category_type, color)
+        # Create new category in database
+        new_category = create_category(user_id, name, category_type, color)
+        if new_category:
+            flash('Category added successfully!', 'success')
+        else:
+            flash('Failed to add category due to a database error.', 'danger')
+
+    except Exception as e:
+        # Catch any other unexpected errors in this route
+        flash(f'An unexpected error occurred: {e}', 'danger')
+        print(f"Error in add_category route: {e}") # For server-side debugging
+
     return redirect(url_for('main.categories'))
 
 # Route: /edit_category/<category_id> - Shows edit form (GET) or updates category (POST)
