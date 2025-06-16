@@ -8,7 +8,10 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 
 def create_app(config_name=None):
-    app = Flask(__name__)
+    # Create Flask app with explicit template and static folder paths
+    app = Flask(__name__, 
+                template_folder='templates',
+                static_folder='static')
     
     # Configure the app
     if config_name == 'production' or os.environ.get('FLASK_ENV') == 'production':
@@ -40,6 +43,11 @@ def create_app(config_name=None):
     
     # Import models to ensure they're registered
     from .models import User, Category, Transaction
+
+    # Flask-Login user_loader
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
     
     # Create database tables
     with app.app_context():
