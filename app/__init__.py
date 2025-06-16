@@ -13,8 +13,19 @@ def create_app(config_name=None):
                 template_folder='templates',
                 static_folder='static')
     
-    # Configure the app - prioritize DATABASE_URL environment variable
-    if os.environ.get('DATABASE_URL'):
+    # Configure the app - prioritize Nhost environment variables
+    if os.environ.get('NHOST_BACKEND_URL'):
+        # Nhost production configuration
+        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or os.environ.get('NHOST_POSTGRES_URL')
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['DEBUG'] = False
+        app.config['NHOST_BACKEND_URL'] = os.environ.get('NHOST_BACKEND_URL')
+        app.config['NHOST_GRAPHQL_URL'] = os.environ.get('NHOST_GRAPHQL_URL')
+        app.config['NHOST_STORAGE_URL'] = os.environ.get('NHOST_STORAGE_URL')
+        app.config['NHOST_AUTH_URL'] = os.environ.get('NHOST_AUTH_URL')
+        print(f"🚀 Using Nhost backend: {os.environ.get('NHOST_BACKEND_URL')[:50]}...")
+    elif os.environ.get('DATABASE_URL'):
         # Production configuration with cloud database
         app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
         app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
