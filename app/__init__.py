@@ -54,7 +54,11 @@ def create_app(config_name=None):
     # Flask-Login user_loader
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        try:
+            return User.query.get(int(user_id))
+        except Exception as e:
+            print(f"Error loading user {user_id}: {e}")
+            return None
     
     # Create database tables
     with app.app_context():

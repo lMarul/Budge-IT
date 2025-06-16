@@ -57,15 +57,21 @@ def admin_required(f):
             flash('Please log in to access this page.', 'danger')
             return redirect(url_for('auth.login'))
         
-        # Get current user from database using SQLAlchemy
-        user = User.query.get(session['user_id'])
-        # Check if user exists and has admin username
-        if not user or user.username != 'admin':
-            # Show access denied message and redirect to dashboard
-            flash('Access denied. Admin privileges required.', 'danger')
+        try:
+            # Get current user from database using SQLAlchemy
+            user = User.query.get(session['user_id'])
+            # Check if user exists and has admin username
+            if not user or user.username != 'admin':
+                # Show access denied message and redirect to dashboard
+                flash('Access denied. Admin privileges required.', 'danger')
+                return redirect(url_for('main.dashboard'))
+            # Execute original function if user is admin
+            return f(*args, **kwargs)
+        except Exception as e:
+            # Handle database connection errors
+            print(f"Error in admin_required decorator: {e}")
+            flash('Unable to verify admin privileges. Please try again later.', 'warning')
             return redirect(url_for('main.dashboard'))
-        # Execute original function if user is admin
-        return f(*args, **kwargs)
     return decorated_function
 
 def get_current_user():
@@ -83,8 +89,13 @@ def get_current_user():
     if 'user_id' not in session:
         return None
     
-    # Get current user from database using SQLAlchemy
-    return User.query.get(session['user_id'])
+    try:
+        # Get current user from database using SQLAlchemy
+        return User.query.get(session['user_id'])
+    except Exception as e:
+        # Handle database connection errors
+        print(f"Error getting current user: {e}")
+        return None
 
 def is_admin():
     """
