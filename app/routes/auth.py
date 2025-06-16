@@ -7,7 +7,7 @@ from datetime import datetime
 # Import User and Category models for database operations
 from app.models import User, Category
 # Import login decorator for protected routes
-from decorators import login_required
+from app.decorators import login_required
 # Import database utility functions
 from app.utils.database import create_user, authenticate_user, get_user_by_username, create_category
 

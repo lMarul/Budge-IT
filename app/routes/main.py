@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 # Import datetime for date handling and calculations
 from datetime import datetime, timedelta, date
 # Import login decorator for protected routes
-from decorators import login_required
+from app.decorators import login_required
 # Import models for database operations
 from app.models import User, Category, Transaction
 # Import database utility functions

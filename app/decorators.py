@@ -5,7 +5,7 @@ from functools import wraps
 # Import Flask session, redirect, url_for, and flash for authentication
 from flask import session, redirect, url_for, flash
 # Import SQLAlchemy models
-from database.models import User
+from .models import User
 
 def login_required(f):
     """

@@ -1,22 +1,33 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-from .config import Config
+import os
 
 # Initialize extensions
 db = SQLAlchemy()
 login_manager = LoginManager()
 
-def create_app(config_class=Config):
-    """Application factory pattern"""
+def create_app(config_name=None):
     app = Flask(__name__)
-    app.config.from_object(config_class)
+    
+    # Configure the app
+    if config_name == 'production' or os.environ.get('FLASK_ENV') == 'production':
+        # Production configuration
+        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['DEBUG'] = False
+    else:
+        # Development configuration
+        app.config['SECRET_KEY'] = 'dev-secret-key'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['DEBUG'] = True
     
     # Initialize extensions with app
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
-    login_manager.login_message_category = 'info'
     
     # Import and register blueprints
     from .routes.auth import auth_bp
@@ -27,7 +38,11 @@ def create_app(config_class=Config):
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
     
-    # Import models to ensure they're registered with SQLAlchemy
-    from .models import user, transaction, category
+    # Import models to ensure they're registered
+    from .models import User, Category, Transaction
+    
+    # Create database tables
+    with app.app_context():
+        db.create_all()
     
     return app 

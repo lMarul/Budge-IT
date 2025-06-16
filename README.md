@@ -43,6 +43,7 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 ├── runtime.txt                # Python version specification
 ├── Dockerfile                 # Docker configuration
 ├── .dockerignore              # Docker ignore file
+├── vercel.json                # Vercel deployment config
 ├── wsgi.py                    # Production WSGI entry point
 └── README.md                  # Project documentation
 ```
@@ -56,10 +57,10 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 ## 🛠️ Technology Stack
 
 - **Backend**: Flask 3.0.0, SQLAlchemy 2.0.23
-- **Database**: PostgreSQL (Nhost)
+- **Database**: PostgreSQL (Supabase/Nhost)
 - **Authentication**: Flask-Login 0.6.3
 - **Frontend**: HTML5, CSS3, JavaScript, Chart.js
-- **Deployment**: Nhost, Gunicorn 21.2.0
+- **Deployment**: Vercel, Nhost, Gunicorn 21.2.0
 
 ## 📦 Installation
 
@@ -92,7 +93,21 @@ A comprehensive personal budget tracking application built with Flask and SQLAlc
 
 ## 🌐 Deployment
 
-### Nhost Deployment (Recommended)
+### Vercel Deployment (Recommended)
+
+Vercel provides fast, reliable deployment with automatic scaling and global CDN.
+
+1. **Follow the Vercel deployment guide**: [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)
+2. **Quick start**:
+   ```bash
+   # Install Vercel CLI
+   npm install -g vercel
+   
+   # Deploy
+   vercel
+   ```
+
+### Nhost Deployment
 
 Nhost provides a complete backend-as-a-service platform with PostgreSQL, authentication, and file storage.
 
@@ -107,7 +122,7 @@ Nhost provides a complete backend-as-a-service platform with PostgreSQL, authent
 
 ### Database Setup
 
-1. Create a PostgreSQL database in Nhost
+1. Create a PostgreSQL database (Supabase recommended)
 2. Run the SQL schema from `deployment/supabase_schema.sql`
 3. Configure Row Level Security (RLS) policies if needed
 4. Set the `DATABASE_URL` environment variable
@@ -118,6 +133,7 @@ Nhost provides a complete backend-as-a-service platform with PostgreSQL, authent
 - [Deployment Guide](docs/DEPLOYMENT_GUIDE.md)
 - [Project Overview](docs/PROJECT_OVERVIEW.md)
 - [Testing Guide](docs/TESTING_GUIDE.md)
+- [Vercel Deployment Guide](VERCEL_DEPLOYMENT.md)
 - [Nhost Deployment Guide](deployment/NHOST_DEPLOYMENT.md)
 
 ## 🔧 Development
@@ -148,6 +164,20 @@ This is an academic project. For questions or issues, please contact the develop
 
 ## 🚀 Quick Deploy
 
+### Deploy to Vercel in 3 minutes:
+
+1. **Install Vercel CLI**:
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Deploy**:
+   ```bash
+   vercel
+   ```
+
+3. **Access your app** at the provided URL!
+
 ### Deploy to Nhost in 5 minutes:
 
 1. **Install Nhost CLI**:
@@ -164,4 +194,4 @@ This is an academic project. For questions or issues, please contact the develop
 
 3. **Access your app** at the provided URL!
 
-For detailed instructions, see [deployment/NHOST_DEPLOYMENT.md](deployment/NHOST_DEPLOYMENT.md).
+For detailed instructions, see [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md) or [deployment/NHOST_DEPLOYMENT.md](deployment/NHOST_DEPLOYMENT.md).

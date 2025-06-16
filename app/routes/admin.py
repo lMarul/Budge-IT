@@ -1,15 +1,17 @@
-# Marwin - Updated for SQLAlchemy
+# Vince - Updated for SQLAlchemy
 
 # Import Flask components for admin routes
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
-# Import admin decorator for protected routes
-from decorators import admin_required
+# Import datetime for date handling
+from datetime import datetime
+# Import login decorator for protected routes
+from app.decorators import login_required, admin_required
 # Import models for database operations
 from app.models import User, Category, Transaction
-# Import database utility functions
-from app.utils.database import get_user_by_id, save_database
 # Import JSON for data serialization
 import json
+# Import save_database utility
+from app.utils.database import save_database
 
 # Create admin blueprint for organizing admin routes
 admin_bp = Blueprint('admin', __name__)
