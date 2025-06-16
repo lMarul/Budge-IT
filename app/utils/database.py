@@ -124,7 +124,7 @@ def initialize_database(app):
                 
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
-        flash(f"Database initialization error: {e}", "danger")
+        print(f"Database initialization error: {e}")
 
 def save_database():
     """
@@ -138,7 +138,7 @@ def save_database():
     except Exception as e:
         db.session.rollback()
         logger.error(f"Error saving database: {e}")
-        flash(f"Error saving data: {e}", "danger")
+        print(f"Error saving data: {e}")
         raise
 
 # --- Model Helper Functions ---

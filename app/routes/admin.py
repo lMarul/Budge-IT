@@ -53,7 +53,6 @@ def dashboard():
         print(f"Error in admin dashboard route: {e}")
         
         # Return fallback values if database connection fails
-        flash('Unable to load admin dashboard. Please try again later.', 'warning')
         return render_template('admin_functions/admin_dashboard.html',
                                total_users=0,
                                total_categories=0,
@@ -86,7 +85,6 @@ def users():
         print(f"Error in admin users route: {e}")
         
         # Return empty user list if database connection fails
-        flash('Unable to load users. Please try again later.', 'warning')
         return render_template('admin_functions/admin_manage_users.html', users=[])
 
 # Route: /admin/edit_user/<user_id> - Updates user account information
@@ -112,7 +110,6 @@ def edit_user(user_id):
         
         # Check if user exists
         if not user_to_edit:
-            flash('User not found.', 'danger')
             return redirect(url_for('admin.users'))
         
         # Get form data for user update
@@ -123,7 +120,6 @@ def edit_user(user_id):
         # Check if new username already exists (excluding current user)
         existing_user = User.query.filter_by(username=new_username).first()
         if existing_user and existing_user.id != user_id:
-            flash('Username already exists.', 'danger')
             return redirect(url_for('admin.users'))
         
         # Update user in database
@@ -132,12 +128,10 @@ def edit_user(user_id):
         if new_password:
             user_to_edit.set_password(new_password)
         save_database()
-        flash('User updated successfully!', 'success')
         
     except Exception as e:
         # Handle any errors during update
         print(f"Error in edit user route: {e}")
-        flash(f'An error occurred while updating user: {e}', 'danger')
     
     # Redirect back to user management page
     return redirect(url_for('admin.users'))
@@ -165,7 +159,6 @@ def delete_user(user_id):
         
         # Check if user exists
         if not user_to_delete:
-            flash('User not found.', 'danger')
             return redirect(url_for('admin.users'))
         
         # Delete user and all associated data (cascade will handle categories and transactions)
@@ -173,13 +166,10 @@ def delete_user(user_id):
         username = user_to_delete.username
         db.session.delete(user_to_delete)
         save_database()
-        # Show success message with deleted username
-        flash(f"User '{username}' and all associated data deleted successfully!", 'success')
         
     except Exception as e:
         # Handle any errors during deletion
         print(f"Error in delete user route: {e}")
-        flash(f'An error occurred while deleting user: {e}', 'danger')
     
     return redirect(url_for('admin.users'))
 
@@ -222,7 +212,6 @@ def view_database():
         print(f"Error in admin database view route: {e}")
         
         # Return empty data if database connection fails
-        flash('Unable to load database content. Please try again later.', 'warning')
         return render_template('admin_functions/admin_view_database.html',
                                users_json='[]',
                                categories_json='[]',

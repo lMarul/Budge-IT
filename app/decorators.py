@@ -27,8 +27,7 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         # Check if user is logged in by looking for user_id in session
         if 'user_id' not in session:
-            # Show error message and redirect to login page
-            flash('Please log in to access this page.', 'danger')
+            # Redirect to login page
             return redirect(url_for('auth.login'))
         # Execute original function if user is logged in
         return f(*args, **kwargs)
@@ -53,8 +52,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         # Check if user is logged in first
         if 'user_id' not in session:
-            # Show error message and redirect to login page
-            flash('Please log in to access this page.', 'danger')
+            # Redirect to login page
             return redirect(url_for('auth.login'))
         
         try:
@@ -62,15 +60,13 @@ def admin_required(f):
             user = User.query.get(session['user_id'])
             # Check if user exists and has admin username
             if not user or user.username != 'admin':
-                # Show access denied message and redirect to dashboard
-                flash('Access denied. Admin privileges required.', 'danger')
+                # Redirect to dashboard
                 return redirect(url_for('main.dashboard'))
             # Execute original function if user is admin
             return f(*args, **kwargs)
         except Exception as e:
             # Handle database connection errors
             print(f"Error in admin_required decorator: {e}")
-            flash('Unable to verify admin privileges. Please try again later.', 'warning')
             return redirect(url_for('main.dashboard'))
     return decorated_function
 

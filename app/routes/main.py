@@ -113,7 +113,6 @@ def dashboard():
         print(f"Error in dashboard route: {e}")
         
         # Return fallback values if database connection fails
-        flash('Unable to load dashboard information. Please try again later.', 'warning')
         return render_template('dashboard.html',
                                total_income=0,
                                total_expense=0)
@@ -154,7 +153,6 @@ def income():
         print(f"Error in income route: {e}")
         
         # Return empty categories if database connection fails
-        flash('Unable to load categories. Please try again later.', 'warning')
         return render_template('income.html', income_categories=[])
 
 # Route: /expense - Shows expense entry form with user's expense categories
@@ -193,7 +191,6 @@ def expense():
         print(f"Error in expense route: {e}")
         
         # Return empty categories if database connection fails
-        flash('Unable to load categories. Please try again later.', 'warning')
         return render_template('expense.html', expense_categories=[])
 
 # Route: /add_transaction - Creates new income or expense transaction
@@ -214,7 +211,6 @@ def add_transaction():
     # Validate that category exists and belongs to user
     category = Category.query.filter_by(id=category_id, user_id=user_id).first()
     if not category:
-        flash('Invalid category selected.', 'danger')
         return redirect(url_for('main.dashboard'))
 
     # Create new transaction in database
@@ -223,15 +219,7 @@ def add_transaction():
     new_transaction = create_transaction(user_id, amount, category_id, transaction_type, transaction_date, item_name)
     
     if new_transaction:
-        flash(f'{transaction_type.capitalize()} added successfully!', 'success')
-    else:
-        flash('Error adding transaction.', 'danger')
-
-    # ✅ Redirect to the correct page based on type
-    if transaction_type == 'income':
-        return redirect(url_for('main.income'))
-    elif transaction_type == 'expense':
-        return redirect(url_for('main.expense'))
+        return redirect(url_for('main.dashboard'))
     else:
         return redirect(url_for('main.dashboard'))
 
@@ -382,17 +370,15 @@ def edit_transaction(transaction_id):
 
         # Update transaction using new utility function
         if update_transaction(transaction_id, user_id, amount, item_name, date, new_category_id, transaction_type):
-            flash('Transaction updated successfully!', 'success')
+            return redirect(url_for('main.history'))
         else:
-            flash('Invalid category selected or transaction not found.', 'danger')
+            return redirect(url_for('main.history'))
     except ValueError:
         # Handle invalid amount input
-        flash('Invalid amount. Please enter a number.', 'danger')
+        return redirect(url_for('main.history'))
     except Exception as e:
         # Handle any other errors
-        flash(f'An error occurred: {e}', 'danger')
-        
-    return redirect(url_for('main.history'))
+        return redirect(url_for('main.history'))
 
 # Route: /delete_transaction/<transaction_id> - Removes transaction from database
 @main_bp.route('/delete_transaction/<int:transaction_id>', methods=['POST'])
@@ -427,11 +413,6 @@ def delete_transaction(transaction_id):
             return jsonify({'success': False, 'message': 'Transaction not found or unauthorized.'})
     
     # Regular form submission
-    if deleted_transaction:
-        flash(f"{deleted_transaction['type'].capitalize()} transaction deleted successfully!", 'success')
-    else:
-        flash('Transaction not found or unauthorized.', 'danger')
-    
     return redirect(url_for('main.history'))
 
 # Route: /categories - Shows category management page for user
@@ -474,18 +455,15 @@ def add_category():
 
     # Basic validation for required fields
     if not name or not category_type or not color:
-        flash('All fields are required to add a category.', 'danger')
         return redirect(url_for('main.categories'))
 
     # Check if category name already exists for this user and type
     existing_categories = get_categories_by_user_and_type(user_id, category_type)
     if any(c['name'].lower() == name.lower() for c in existing_categories):
-        flash(f'Category "{name}" of type "{category_type}" already exists.', 'danger')
         return redirect(url_for('main.categories'))
 
     # Create new category in database
     create_category(user_id, name, category_type, color)
-    flash(f'Category "{name}" added successfully!', 'success')
     return redirect(url_for('main.categories'))
 
 # Route: /edit_category/<category_id> - Shows edit form (GET) or updates category (POST)
@@ -511,7 +489,6 @@ def edit_category(category_id):
 
     # Check if category exists and belongs to user
     if not category_to_edit:
-        flash('Category not found or unauthorized.', 'danger')
         return redirect(url_for('main.categories'))
 
     if request.method == 'POST':
@@ -524,7 +501,7 @@ def edit_category(category_id):
             # Check for duplicate name for the same user and type, excluding the current category being edited
             existing_categories = get_categories_by_user_and_type(user_id, new_type)
             if any(c.name.lower() == new_name.lower() and c.id != category_id for c in existing_categories):
-                flash(f'Category "{new_name}" of type "{new_type}" already exists for this user.', 'danger')
+                return redirect(url_for('main.categories'))
             else:
                 # Update category in database
                 category_to_edit.name = new_name
@@ -532,11 +509,10 @@ def edit_category(category_id):
                 category_to_edit.color = new_color
                 from app.utils.database import save_database
                 save_database()
-                flash('Category updated successfully!', 'success')
                 return redirect(url_for('main.categories'))
         except Exception as e:
             # Handle any errors during update
-            flash(f'An error occurred: {e}', 'danger')
+            return redirect(url_for('main.categories'))
     
     # Render edit category template for GET requests
     return render_template('edit_category.html', category=category_to_edit)
@@ -568,10 +544,6 @@ def delete_category(category_id):
         from app.models import db
         db.session.delete(category_to_delete)
         save_database()
-        flash(f"Category deleted successfully! Associated transactions will be marked as Uncategorized.", 'success')
-    else:
-        flash('Category not found or unauthorized.', 'danger')
-    
     return redirect(url_for('main.categories'))
 
 # Route: /get_chart_data/<chart_type> - Returns JSON data for financial charts
@@ -756,7 +728,6 @@ def account():
         print(f"Error in account route: {e}")
         
         # Return fallback values if database connection fails
-        flash('Unable to load account information. Please try again later.', 'warning')
         return render_template('account.html',
                                total_income=0,
                                total_expense=0,

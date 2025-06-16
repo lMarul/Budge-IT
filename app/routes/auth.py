@@ -43,8 +43,6 @@ def login():
             # Store user ID and username in session
             session['user_id'] = user.id
             session['username'] = user.username
-            # Show success message to user
-            flash('Logged in successfully!', 'success')
             
             # Redirect admin users to admin dashboard, others to regular dashboard
             if username == 'admin':
@@ -53,7 +51,7 @@ def login():
                 return redirect(url_for('main.dashboard'))
         else:
             # Show error message for invalid credentials
-            flash('Invalid username or password.', 'danger')
+            pass
     # Render login template for GET requests
     return render_template('login.html')
 
@@ -82,19 +80,16 @@ def register():
 
         # Validate that passwords match
         if password != confirm_password:
-            flash('Passwords do not match.', 'danger')
             return render_template('register.html')
 
         # Check if username already exists in database
         if get_user_by_username(username):
-            flash('Username already exists.', 'danger')
             return render_template('register.html')
 
         # Create new user account in database
         new_user = create_user(username, email, password)
         
         if not new_user:
-            flash('Error creating user account.', 'danger')
             return render_template('register.html')
 
         # Define default categories for new user
@@ -111,7 +106,6 @@ def register():
             create_category(new_user.id, cat_data['name'], cat_data['type'], cat_data['color'])
 
         # Show success message and redirect to login
-        flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('auth.login'))
     # Render registration template for GET requests
     return render_template('register.html')
@@ -133,8 +127,6 @@ def logout():
     # Remove user data from session
     session.pop('user_id', None)
     session.pop('username', None)
-    # Show logout message to user
-    flash('You have been logged out.', 'info')
     
     # Return a response that clears dark mode preference and redirects
     return '''
