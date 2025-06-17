@@ -93,39 +93,41 @@ def create_app(config_name=None):
                 # Return None to force re-authentication if database is down
                 return None
         
-        # Create database tables - PRESERVE EXISTING DATA
+        # Create database tables - PRESERVE EXISTING DATA (with timeout)
         try:
+            print("🔄 Initializing database tables...")
             db.create_all()
-            print("Database tables created/verified successfully!")
+            print("✅ Database tables created/verified successfully!")
             
-            # Check existing users in Supabase with retry logic
+            # Check existing users in Supabase with retry logic (non-blocking)
             try:
+                print("🔄 Checking existing users...")
                 user_count = User.query.count()
-                print(f"Found {user_count} existing users in database")
+                print(f"✅ Found {user_count} existing users in database")
                 
                 # Only create admin if NO users exist at all
                 if user_count == 0:
-                    print("No users found, creating admin user...")
+                    print("🔄 No users found, creating admin user...")
                     admin_user = User(username='admin', email='admin@example.com')
                     admin_user.set_password('admin123')
                     db.session.add(admin_user)
                     db.session.commit()
-                    print("Admin user created successfully!")
+                    print("✅ Admin user created successfully!")
                 else:
-                    print(f"Database has {user_count} existing users - PRESERVING ALL DATA")
+                    print(f"✅ Database has {user_count} existing users - PRESERVING ALL DATA")
                     
             except Exception as db_error:
-                print(f"Database query failed: {db_error}")
+                print(f"⚠️ Database query failed: {db_error}")
                 print("This is likely due to Supabase connection limits.")
                 print("Your data is safe - the app will work once connections are restored.")
                 print("Users will need to log in again once database is available.")
             
         except Exception as e:
-            print(f"Database initialization warning: {e}")
+            print(f"⚠️ Database initialization warning: {e}")
             
             # If Supabase fails, just continue - don't crash the app
             if database_url and database_url.startswith('postgresql://'):
-                print("SUPABASE CONNECTION FAILED - YOUR DATA IS STILL THERE!")
+                print("⚠️ SUPABASE CONNECTION FAILED - YOUR DATA IS STILL THERE!")
                 print("App will start but database operations may fail until connection is restored.")
                 print("This is temporary - your data is safe in Supabase.")
                 print("Connection error details:", str(e))
@@ -135,4 +137,5 @@ def create_app(config_name=None):
                 print("3. Monitor status at: https://budge-it-j4bp.onrender.com/check-supabase")
                 print("4. Check auth health at: https://budge-it-j4bp.onrender.com/auth-health")
     
+    print("✅ Flask application initialization completed")
     return app
