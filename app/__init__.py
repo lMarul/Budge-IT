@@ -84,17 +84,12 @@ def create_app(config_name=None):
                 print(f"Database has {user_count} existing users - PRESERVING ALL DATA")
             
         except Exception as e:
-            print(f"Database initialization error: {e}")
+            print(f"Database initialization warning: {e}")
             
-            # If Supabase fails, we need to fix the connection, not ditch the data
+            # If Supabase fails, just continue - don't crash the app
             if database_url and database_url.startswith('postgresql://'):
                 print("SUPABASE CONNECTION FAILED - YOUR DATA IS STILL THERE!")
-                print("The issue is connection limits, not data loss.")
-                print("Your existing users and data are safe in Supabase.")
-                print("Try again later when connection limits reset.")
-                
-                # Don't fallback to SQLite - we want to preserve Supabase data
-                # Just let the error happen so you know there's a connection issue
-                raise e
+                print("App will start but database operations may fail until connection is restored.")
+                print("This is temporary - your data is safe in Supabase.")
     
     return app
