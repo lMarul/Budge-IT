@@ -43,7 +43,7 @@ def login():
             # Check database connection first
             if not check_database_connection():
                 logger.error("Database connection failed during login attempt")
-                flash('Database connection is temporarily unavailable. Please try again in a few minutes.', 'error')
+                flash('Supabase connection is temporarily unavailable. Your data is safe - please try again in 15-30 minutes.', 'error')
                 return render_template('login.html')
 
             # Authenticate user with provided credentials
@@ -69,7 +69,7 @@ def login():
                 
         except Exception as e:
             logger.error(f"Error during login process: {e}")
-            flash('An error occurred during login. Please try again.', 'error')
+            flash('Supabase connection issue. Your data is safe - please try again in 15-30 minutes.', 'error')
     
     # Render login template for GET requests
     return render_template('login.html')

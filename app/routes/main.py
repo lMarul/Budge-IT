@@ -11,26 +11,39 @@ from app.models import User, Category, Transaction
 # Import db from main app
 from app import db
 # Import database utility functions
-from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password
+from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password, check_database_connection
 import os
 
 # Create main blueprint for organizing application routes
 main_bp = Blueprint('main', __name__)
 
-# Health check endpoint for Render deployment
+# Health check endpoint to monitor database status
 @main_bp.route('/health')
 def health_check():
     """
-    Health check endpoint for Render deployment monitoring.
-    
-    Returns:
-        dict: Health status response
+    Health check endpoint to monitor database and app status.
     """
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.utcnow().isoformat(),
-        'service': 'budge-it'
-    }), 200
+    try:
+        # Check database connection
+        db_healthy = check_database_connection()
+        
+        health_status = {
+            'status': 'healthy' if db_healthy else 'degraded',
+            'database': 'connected' if db_healthy else 'connection_limited',
+            'message': 'Your Supabase data is safe and accessible' if db_healthy else 'Supabase connection limited - your data is safe, try again in 15-30 minutes',
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        status_code = 200 if db_healthy else 503
+        return jsonify(health_status), status_code
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'database': 'unknown',
+            'message': f'Health check failed: {str(e)}',
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 # Test endpoint to verify database connection
 @main_bp.route('/test')

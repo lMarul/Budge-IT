@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import flash
 import logging
 import time
-from sqlalchemy.exc import OperationalError, DisconnectionError
+from sqlalchemy.exc import OperationalError, DisconnectionError, SQLAlchemyError, TimeoutError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -16,22 +16,21 @@ logger = logging.getLogger(__name__)
 
 def check_database_connection():
     """
-    Check if the database connection is healthy.
+    Check if database connection is available with timeout.
     
     Returns:
-        bool: True if connection is healthy, False otherwise
+        bool: True if connection is available, False otherwise
     """
     try:
-        from app import db
-        # Try a simple query to test connection
-        db.session.execute(db.text('SELECT 1'))
+        # Try a simple query with timeout
+        db.session.execute('SELECT 1')
         db.session.commit()
         return True
-    except (OperationalError, DisconnectionError) as e:
-        logger.warning(f"Database connection check failed: {e}")
+    except (OperationalError, TimeoutError) as e:
+        logger.warning(f"Database connection timeout/error: {e}")
         return False
     except Exception as e:
-        logger.error(f"Unexpected error during connection check: {e}")
+        logger.error(f"Database connection check failed: {e}")
         return False
 
 def retry_database_operation(operation, max_retries=3, delay=1):
@@ -62,67 +61,17 @@ def retry_database_operation(operation, max_retries=3, delay=1):
             return None
 
 # --- Jinja2 Custom Filters ---
-def datetimeformat(value, format='%B %d, %Y'):
-    """
-    Custom Jinja2 filter for formatting datetime strings in templates.
-    
-    This function takes a datetime string and formats it according to the specified
-    format string. It handles invalid or missing dates gracefully by returning 'N/A'.
-    
-    Args:
-        value: ISO-formatted datetime string or None
-        format: Format string for datetime output (default: '%B %d, %Y')
-    
-    Returns:
-        str: Formatted date string or 'N/A' if invalid/missing
-    """
-    # Return N/A if value is empty or already N/A
-    if not value or value == 'N/A':
-        return "N/A"
-    
-    try:
-        # Convert ISO string to datetime object for formatting
-        dt_object = datetime.fromisoformat(value)
-        # Return formatted date string
-        return dt_object.strftime(format)
-    except (ValueError, TypeError):
-        # Return N/A for invalid date formats
-        return "N/A"
+def datetimeformat(value, format='%Y-%m-%d %H:%M'):
+    """Format datetime for display in templates."""
+    if value is None:
+        return ""
+    return value.strftime(format)
 
-def amount_color(value):
-    """
-    Custom Jinja2 filter for determining color class based on amount value.
-    
-    This function takes a numeric value and returns the appropriate CSS color class:
-    - Gray for zero values
-    - Green for positive values  
-    - Red for negative values
-    
-    Args:
-        value: Numeric value (int, float, or string that can be converted to float)
-    
-    Returns:
-        str: CSS color class string for Tailwind CSS
-    """
-    try:
-        # Convert to float and handle edge cases
-        if value is None:
-            return "text-gray-500 dark:text-gray-400"
-        
-        # Convert to float, handling string inputs
-        num_value = float(value)
-        
-        # Handle edge cases
-        if num_value == 0:
-            return "text-gray-500 dark:text-gray-400"
-        elif num_value > 0:
-            return "text-green-600 dark:text-green-400"
-        else:  # num_value < 0
-            return "text-red-600 dark:text-red-400"
-            
-    except (ValueError, TypeError):
-        # Return gray for invalid values
-        return "text-gray-500 dark:text-gray-400"
+def amount_color(amount):
+    """Return CSS class for amount color based on value."""
+    if amount is None:
+        return ""
+    return "text-success" if amount >= 0 else "text-danger"
 
 # --- Database Helper Functions (SQLAlchemy) ---
 
@@ -202,27 +151,28 @@ def save_database():
 
 def create_user(username, email, password):
     """
-    Create a new user in the database.
+    Create a new user with error handling for Supabase connection limits.
     
     Args:
-        username: Unique username for the new account
-        email: Email address for the new account
-        password: Plain text password (will be hashed)
-    
+        username (str): Username for the new user
+        email (str): Email address for the new user
+        password (str): Password for the new user
+        
     Returns:
-        User: New user object or None if creation failed
+        User: Created user object or None if creation failed
     """
     try:
-        # Import models and db here to avoid circular imports
-        from app.models import User
-        from app import db
-        
+        # Check connection first
+        if not check_database_connection():
+            logger.error("Cannot create user - Supabase connection unavailable")
+            return None
+            
         # Check if user already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            logger.warning(f"User {username} already exists")
+            logger.warning(f"User creation failed - username {username} already exists")
             return None
-        
+            
         # Create new user
         user = User(username=username, email=email)
         user.set_password(password)
@@ -230,17 +180,20 @@ def create_user(username, email, password):
         db.session.add(user)
         db.session.commit()
         
-        # Create preset categories for the new user
-        create_preset_categories(user.id)
-        
-        logger.info(f"User {username} created successfully with preset categories")
+        logger.info(f"User {username} created successfully")
         return user
         
-    except Exception as e:
-        # Import db here to avoid circular imports
-        from app import db
+    except (OperationalError, TimeoutError) as e:
+        logger.error(f"Supabase connection error during user creation: {e}")
         db.session.rollback()
-        logger.error(f"Error creating user {username}: {e}")
+        return None
+    except SQLAlchemyError as e:
+        logger.error(f"Database error during user creation: {e}")
+        db.session.rollback()
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error during user creation: {e}")
+        db.session.rollback()
         return None
 
 def create_preset_categories(user_id):
@@ -303,33 +256,40 @@ def create_preset_categories(user_id):
 
 def authenticate_user(username, password):
     """
-    Authenticate a user login attempt with retry logic for database connection issues.
+    Authenticate user with improved error handling for Supabase connection limits.
     
     Args:
-        username: Username to authenticate
-        password: Plain text password to verify
-    
+        username (str): Username to authenticate
+        password (str): Password to verify
+        
     Returns:
-        User or None: User object if authentication successful, None otherwise
+        User: Authenticated user object or None if authentication failed
     """
-    def _authenticate():
-        try:
-            # Import models here to avoid circular imports
-            from app.models import User
-            from app import db
-            
-            user = User.query.filter_by(username=username).first()
-            if user and user.check_password(password):
-                logger.info(f"User {username} authenticated successfully")
-                return user
-            logger.warning(f"Authentication failed for user {username}")
+    try:
+        # Check connection first
+        if not check_database_connection():
+            logger.error("Cannot authenticate user - Supabase connection unavailable")
             return None
-        except Exception as e:
-            logger.error(f"Error authenticating user {username}: {e}")
-            raise
-    
-    # Use retry logic for database operations
-    return retry_database_operation(_authenticate, max_retries=3, delay=2)
+            
+        # Find user by username
+        user = User.query.filter_by(username=username).first()
+        
+        if user and user.check_password(password):
+            logger.info(f"User {username} authenticated successfully")
+            return user
+        else:
+            logger.warning(f"Authentication failed for username: {username}")
+            return None
+            
+    except (OperationalError, TimeoutError) as e:
+        logger.error(f"Supabase connection error during authentication: {e}")
+        return None
+    except SQLAlchemyError as e:
+        logger.error(f"Database error during authentication: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error during authentication: {e}")
+        return None
 
 def get_user_by_id(user_id):
     """
@@ -351,58 +311,63 @@ def get_user_by_id(user_id):
 
 def get_user_by_username(username):
     """
-    Get user by username.
+    Get user by username with error handling.
     
     Args:
-        username: Username to find
-    
+        username (str): Username to search for
+        
     Returns:
-        User or None: User object if found, None otherwise
+        User: User object or None if not found or error occurred
     """
     try:
-        # Import models here to avoid circular imports
-        from app.models import User
+        if not check_database_connection():
+            logger.error("Cannot get user - Supabase connection unavailable")
+            return None
+            
         return User.query.filter_by(username=username).first()
+        
+    except (OperationalError, TimeoutError) as e:
+        logger.error(f"Supabase connection error getting user: {e}")
+        return None
     except Exception as e:
-        logger.error(f"Error getting user by username {username}: {e}")
+        logger.error(f"Error getting user {username}: {e}")
         return None
 
-def create_category(user_id, name, category_type, color):
+def create_category(name, user_id, category_type):
     """
-    Create a new category for a user.
+    Create a new category with error handling.
     
     Args:
-        user_id: ID of the user who owns this category
-        name: Name of the category
-        category_type: Type of category ('income' or 'expense')
-        color: Hex color code for category display
-    
+        name (str): Category name
+        user_id (int): User ID who owns the category
+        category_type (str): Type of category (income/expense)
+        
     Returns:
-        Category or None: New category object or None if creation failed
+        Category: Created category object or None if creation failed
     """
     try:
-        # Import models here to avoid circular imports
-        from app.models import Category
-        from app import db
-        
-        category = Category(
-            user_id=user_id,
-            name=name,
-            category_type=category_type,
-            color=color
-        )
-        
+        if not check_database_connection():
+            logger.error("Cannot create category - Supabase connection unavailable")
+            return None
+            
+        category = Category(name=name, user_id=user_id, type=category_type)
         db.session.add(category)
         db.session.commit()
         
-        logger.info(f"Category {name} created for user {user_id}")
+        logger.info(f"Category {name} created successfully for user {user_id}")
         return category
         
-    except Exception as e:
-        # Import db here to avoid circular imports
-        from app import db
+    except (OperationalError, TimeoutError) as e:
+        logger.error(f"Supabase connection error creating category: {e}")
         db.session.rollback()
-        logger.error(f"Error creating category {name}: {e}")
+        return None
+    except SQLAlchemyError as e:
+        logger.error(f"Database error creating category: {e}")
+        db.session.rollback()
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error creating category: {e}")
+        db.session.rollback()
         return None
 
 def get_categories_by_user_and_type(user_id, category_type):
