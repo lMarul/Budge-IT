@@ -29,6 +29,34 @@ def health_check():
         'service': 'budge-it'
     }), 200
 
+# Test endpoint to verify database connection
+@main_bp.route('/test')
+def test_endpoint():
+    """
+    Test endpoint to verify the application is working.
+    
+    Returns:
+        dict: Test response with database status
+    """
+    try:
+        from app.models import User
+        user_count = User.query.count()
+        return jsonify({
+            'status': 'working',
+            'database': 'connected',
+            'user_count': user_count,
+            'timestamp': datetime.utcnow().isoformat(),
+            'message': 'Application is working correctly!'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'database': 'disconnected',
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat(),
+            'message': 'Database connection failed'
+        }), 500
+
 # Database connection test endpoint
 @main_bp.route('/test-db')
 def test_database():
