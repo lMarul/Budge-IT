@@ -13,15 +13,23 @@ def create_app(config_name=None):
                 template_folder='templates',
                 static_folder='static')
     
-    # Configure the app - use SQLite by default for reliability
+    # Configure the app - try Supabase first, fallback to SQLite
     database_url = os.environ.get('DATABASE_URL')
     
-    # Use SQLite by default for better reliability
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['DEBUG'] = True
-    print("Using SQLite database for reliability")
+    # Try to use Supabase/PostgreSQL if available
+    if database_url and database_url.startswith('postgresql://'):
+        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['DEBUG'] = False
+        print(f"Attempting to use Supabase: {database_url[:50]}...")
+    else:
+        # Use SQLite if no DATABASE_URL provided
+        app.config['SECRET_KEY'] = 'dev-secret-key'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        app.config['DEBUG'] = True
+        print("No DATABASE_URL found, using SQLite")
     
     # Initialize extensions with app
     db.init_app(app)
@@ -54,28 +62,63 @@ def create_app(config_name=None):
             print(f"Error loading user {user_id}: {e}")
             return None
     
-    # Create database tables
+    # Create database tables with proper fallback
     with app.app_context():
         try:
             db.create_all()
             print("Database tables created/verified successfully!")
             
-            # Create admin user if it doesn't exist
-            admin_user = User.query.filter_by(username='admin').first()
-            if not admin_user:
+            # Test database connection
+            user_count = User.query.count()
+            print(f"Database connection successful! Found {user_count} existing users.")
+            
+            # Only create admin if no users exist
+            if user_count == 0:
                 admin_user = User(username='admin', email='admin@example.com')
                 admin_user.set_password('admin123')
                 db.session.add(admin_user)
                 db.session.commit()
                 print("Admin user created successfully!")
-            
-            # Create common users for testing and recovery
-            from .utils.database import create_common_users
-            created_count = create_common_users()
-            if created_count > 0:
-                print(f"Created {created_count} common users for testing")
+                
+                # Create common users for testing
+                from .utils.database import create_common_users
+                created_count = create_common_users()
+                if created_count > 0:
+                    print(f"Created {created_count} common users for testing")
+            else:
+                print(f"Database has {user_count} existing users - preserving data")
             
         except Exception as e:
             print(f"Database initialization error: {e}")
+            
+            # If Supabase fails, fallback to SQLite
+            if database_url and database_url.startswith('postgresql://'):
+                print("Supabase connection failed, falling back to SQLite...")
+                
+                # Update config to use SQLite
+                app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+                
+                # Reinitialize with SQLite
+                db.init_app(app)
+                
+                try:
+                    db.create_all()
+                    print("SQLite database tables created successfully!")
+                    
+                    # Create admin and common users in SQLite
+                    admin_user = User(username='admin', email='admin@example.com')
+                    admin_user.set_password('admin123')
+                    db.session.add(admin_user)
+                    db.session.commit()
+                    print("Admin user created in SQLite successfully!")
+                    
+                    # Create common users
+                    from .utils.database import create_common_users
+                    created_count = create_common_users()
+                    if created_count > 0:
+                        print(f"Created {created_count} common users in SQLite")
+                        
+                except Exception as sqlite_error:
+                    print(f"SQLite fallback also failed: {sqlite_error}")
     
     return app

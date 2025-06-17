@@ -10,6 +10,7 @@ from app.decorators import login_required
 from app.models import User, Category, Transaction
 # Import database utility functions
 from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password
+import os
 
 # Create main blueprint for organizing application routes
 main_bp = Blueprint('main', __name__)
@@ -69,8 +70,15 @@ def test_database():
     try:
         from app.models import User
         user_count = User.query.count()
+        
+        # Check if we're using Supabase or SQLite
+        from app import db
+        database_uri = db.engine.url
+        
         return jsonify({
             'status': 'connected',
+            'database_type': 'postgresql' if 'postgresql' in str(database_uri) else 'sqlite',
+            'database_uri': str(database_uri).replace(str(database_uri.password), '***') if database_uri.password else str(database_uri),
             'user_count': user_count,
             'timestamp': datetime.utcnow().isoformat(),
             'message': 'Database connection successful'
@@ -81,6 +89,49 @@ def test_database():
             'error': str(e),
             'timestamp': datetime.utcnow().isoformat(),
             'message': 'Database connection failed'
+        }), 500
+
+# Route to check Supabase connection specifically
+@main_bp.route('/check-supabase')
+def check_supabase():
+    """
+    Check if Supabase connection is available and working.
+    
+    Returns:
+        dict: Supabase connection status
+    """
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        
+        if not database_url:
+            return jsonify({
+                'status': 'not_configured',
+                'message': 'No DATABASE_URL environment variable found'
+            }), 200
+        
+        if not database_url.startswith('postgresql://'):
+            return jsonify({
+                'status': 'not_supabase',
+                'message': 'DATABASE_URL is not a PostgreSQL connection string'
+            }), 200
+        
+        # Try to connect to Supabase
+        from app.models import User
+        user_count = User.query.count()
+        
+        return jsonify({
+            'status': 'connected',
+            'message': f'Supabase connection successful! Found {user_count} users.',
+            'user_count': user_count,
+            'database_url': database_url[:50] + '...' if len(database_url) > 50 else database_url
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Supabase connection failed',
+            'suggestion': 'The application will fallback to SQLite automatically'
         }), 500
 
 # Route: / - Entry point, redirects based on authentication status
