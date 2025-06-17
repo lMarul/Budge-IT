@@ -26,6 +26,12 @@ Flask-Login==0.6.3
 # Production Deployment
 gunicorn==21.2.0
 
+# Testing Dependencies
+pytest==7.4.0
+pytest-flask==1.2.0
+coverage==7.2.7
+pytest-cov==4.1.0
+
 # Additional dependencies that might be needed
 # Development Dependencies (commented out for production)
 # pytest==7.4.0
