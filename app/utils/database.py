@@ -262,6 +262,10 @@ def authenticate_user(username, password):
         User or None: User object if authentication successful, None otherwise
     """
     try:
+        # Import models here to avoid circular imports
+        from app.models import User
+        from app import db
+        
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             logger.info(f"User {username} authenticated successfully")
@@ -283,6 +287,8 @@ def get_user_by_id(user_id):
         User or None: User object if found, None otherwise
     """
     try:
+        # Import models here to avoid circular imports
+        from app.models import User
         return User.query.get(user_id)
     except Exception as e:
         logger.error(f"Error getting user by ID {user_id}: {e}")
@@ -299,6 +305,8 @@ def get_user_by_username(username):
         User or None: User object if found, None otherwise
     """
     try:
+        # Import models here to avoid circular imports
+        from app.models import User
         return User.query.filter_by(username=username).first()
     except Exception as e:
         logger.error(f"Error getting user by username {username}: {e}")
@@ -318,6 +326,10 @@ def create_category(user_id, name, category_type, color):
         Category or None: New category object or None if creation failed
     """
     try:
+        # Import models here to avoid circular imports
+        from app.models import Category
+        from app import db
+        
         category = Category(
             user_id=user_id,
             name=name,
@@ -332,6 +344,8 @@ def create_category(user_id, name, category_type, color):
         return category
         
     except Exception as e:
+        # Import db here to avoid circular imports
+        from app import db
         db.session.rollback()
         logger.error(f"Error creating category {name}: {e}")
         return None
@@ -348,6 +362,8 @@ def get_categories_by_user_and_type(user_id, category_type):
         list: List of Category objects
     """
     try:
+        # Import models here to avoid circular imports
+        from app.models import Category
         return Category.query.filter_by(
             user_id=user_id, 
             category_type=category_type
@@ -372,6 +388,10 @@ def create_transaction(user_id, amount, category_id, transaction_type, date, ite
         Transaction or None: New transaction object or None if creation failed
     """
     try:
+        # Import models here to avoid circular imports
+        from app.models import Transaction
+        from app import db
+        
         transaction = Transaction(
             user_id=user_id,
             amount=amount,
@@ -388,6 +408,8 @@ def create_transaction(user_id, amount, category_id, transaction_type, date, ite
         return transaction
         
     except Exception as e:
+        # Import db here to avoid circular imports
+        from app import db
         db.session.rollback()
         logger.error(f"Error creating transaction {item_name}: {e}")
         return None
@@ -403,6 +425,8 @@ def get_transactions_by_user(user_id):
         list: List of Transaction objects
     """
     try:
+        # Import models here to avoid circular imports
+        from app.models import Transaction
         return Transaction.query.filter_by(user_id=user_id).order_by(Transaction.date.desc()).all()
     except Exception as e:
         logger.error(f"Error getting transactions for user {user_id}: {e}")
@@ -420,6 +444,8 @@ def get_transaction_by_id(transaction_id, user_id):
         Transaction or None: Transaction object if found and belongs to user, None otherwise
     """
     try:
+        # Import models here to avoid circular imports
+        from app.models import Transaction
         return Transaction.query.filter_by(id=transaction_id, user_id=user_id).first()
     except Exception as e:
         logger.error(f"Error getting transaction {transaction_id} for user {user_id}: {e}")
@@ -442,6 +468,10 @@ def update_transaction(transaction_id, user_id, amount, item_name, date, categor
         bool: True if update successful, False otherwise
     """
     try:
+        # Import models here to avoid circular imports
+        from app.models import Category
+        from app import db
+        
         transaction = get_transaction_by_id(transaction_id, user_id)
         if not transaction:
             logger.warning(f"Transaction {transaction_id} not found or unauthorized for user {user_id}")
@@ -465,6 +495,8 @@ def update_transaction(transaction_id, user_id, amount, item_name, date, categor
         return True
         
     except Exception as e:
+        # Import db here to avoid circular imports
+        from app import db
         db.session.rollback()
         logger.error(f"Error updating transaction {transaction_id}: {e}")
         return False
@@ -481,6 +513,9 @@ def delete_transaction(transaction_id, user_id):
         dict or None: Transaction data if deleted successfully, None otherwise
     """
     try:
+        # Import db here to avoid circular imports
+        from app import db
+        
         transaction = get_transaction_by_id(transaction_id, user_id)
         if not transaction:
             logger.warning(f"Transaction {transaction_id} not found or unauthorized for user {user_id}")
@@ -502,6 +537,8 @@ def delete_transaction(transaction_id, user_id):
         return transaction_data
         
     except Exception as e:
+        # Import db here to avoid circular imports
+        from app import db
         db.session.rollback()
         logger.error(f"Error deleting transaction {transaction_id}: {e}")
         return None
@@ -513,7 +550,8 @@ def migrate_from_json(json_file_path):
     This function reads the existing JSON database and creates corresponding
     records in the SQLAlchemy database.
     """
-    from models_sqlalchemy import migrate_from_json as model_migrate
+    # Import models here to avoid circular imports
+    from app.models import migrate_from_json as model_migrate
     
     try:
         model_migrate(json_file_path)

@@ -14,13 +14,14 @@ def create_app(config_name=None):
                 static_folder='static')
     
     # Configure the app - prioritize DATABASE_URL environment variable
-    if os.environ.get('DATABASE_URL'):
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url and database_url.startswith('postgresql://'):
         # Production configuration with cloud database
         app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['DEBUG'] = False
-        print(f"Using cloud database: {os.environ.get('DATABASE_URL')[:50]}...")
+        print(f"Using cloud database: {database_url[:50]}...")
     else:
         # Development configuration with local SQLite
         app.config['SECRET_KEY'] = 'dev-secret-key'
@@ -69,6 +70,16 @@ def create_app(config_name=None):
         try:
             db.create_all()
             print("Database tables created/verified successfully!")
+            
+            # Create admin user if it doesn't exist
+            admin_user = User.query.filter_by(username='admin').first()
+            if not admin_user:
+                admin_user = User(username='admin', email='admin@example.com')
+                admin_user.set_password('admin123')
+                db.session.add(admin_user)
+                db.session.commit()
+                print("Admin user created successfully!")
+            
         except Exception as e:
             print(f"Database initialization warning: {e}")
     

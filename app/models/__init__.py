@@ -3,10 +3,9 @@
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
-from sqlalchemy import event
 
-# We'll define the models without inheriting from db.Model initially
-# and then bind them to the db instance later
+# We'll define the models properly with db.Model inheritance
+# The db instance will be imported when needed
 
 class User:
     """
@@ -88,6 +87,11 @@ class Transaction:
 def init_models(db):
     """Initialize the models with the database instance."""
     global User, Category, Transaction
+    
+    # Make models inherit from db.Model
+    User.__bases__ = (db.Model,)
+    Category.__bases__ = (db.Model,)
+    Transaction.__bases__ = (db.Model,)
     
     # Add columns to User model
     User.id = db.Column(db.Integer, primary_key=True)
