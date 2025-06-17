@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import os
+import json
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -22,7 +23,31 @@ def create_app(config_name=None):
         app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['DEBUG'] = False
+        
+        # Configure database connection pooling for Supabase
+        engine_options = {
+            'pool_size': 5,
+            'pool_recycle': 300,
+            'pool_pre_ping': True,
+            'max_overflow': 10,
+            'connect_args': {
+                'connect_timeout': 10,
+                'application_name': 'budge-it-app'
+            }
+        }
+        
+        # Override with environment variable if provided
+        sqlalchemy_options = os.environ.get('SQLALCHEMY_ENGINE_OPTIONS')
+        if sqlalchemy_options:
+            try:
+                env_options = json.loads(sqlalchemy_options)
+                engine_options.update(env_options)
+            except json.JSONDecodeError:
+                print("Warning: Invalid SQLALCHEMY_ENGINE_OPTIONS JSON")
+        
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
         print(f"Using Supabase database: {database_url[:50]}...")
+        print(f"Database pool configuration: {engine_options}")
     else:
         # Only use SQLite if NO DATABASE_URL is provided
         app.config['SECRET_KEY'] = 'dev-secret-key'
@@ -91,5 +116,6 @@ def create_app(config_name=None):
                 print("SUPABASE CONNECTION FAILED - YOUR DATA IS STILL THERE!")
                 print("App will start but database operations may fail until connection is restored.")
                 print("This is temporary - your data is safe in Supabase.")
+                print("Connection error details:", str(e))
     
     return app

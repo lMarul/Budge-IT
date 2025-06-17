@@ -3,9 +3,11 @@ services:
     name: budget-tracker
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app
+    startCommand: gunicorn wsgi:app --timeout 120 --workers 2 --worker-class sync --max-requests 1000 --max-requests-jitter 100
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.13
       - key: FLASK_ENV
-        value: production 
+        value: production
+      - key: SQLALCHEMY_ENGINE_OPTIONS
+        value: '{"pool_size": 5, "pool_recycle": 300, "pool_pre_ping": true, "max_overflow": 10}' 

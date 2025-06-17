@@ -173,3 +173,158 @@ Once deployed, your app will be available at:
 - SQLAlchemy ORM for secure database operations
 - Flask-Login for session management
 - Supabase Row Level Security (RLS) policies
+
+## 🚀 Live Deployment
+
+**Application URL**: https://budge-it-j4bp.onrender.com
+
+## 🔧 Deployment Status & Troubleshooting
+
+### Current Issues & Solutions
+
+#### 1. Supabase Connection Limits
+**Issue**: "Max client connections reached" error
+**Status**: Your data is safe in Supabase! This is a connection limit issue, not a data loss issue.
+
+**Solutions**:
+- **Wait**: Connection limits reset automatically (usually within 15-30 minutes)
+- **Upgrade**: Consider upgrading your Supabase plan for higher connection limits
+- **Monitor**: Use the health check endpoints below to monitor status
+
+#### 2. Worker Timeout
+**Issue**: Gunicorn worker timeout
+**Status**: Fixed with updated configuration in `render.yaml`
+
+### Health Check Endpoints
+
+Use these endpoints to monitor your application status:
+
+- **Basic Health**: `https://budge-it-j4bp.onrender.com/health`
+- **Database Test**: `https://budge-it-j4bp.onrender.com/test-db`
+- **Supabase Status**: `https://budge-it-j4bp.onrender.com/check-supabase`
+- **Detailed Status**: `https://budge-it-j4bp.onrender.com/database-status`
+
+### Quick Fixes
+
+1. **Check if Supabase is back online**:
+   ```bash
+   curl https://budge-it-j4bp.onrender.com/check-supabase
+   ```
+
+2. **Monitor application health**:
+   ```bash
+   curl https://budge-it-j4bp.onrender.com/health
+   ```
+
+3. **If still having issues, redeploy**:
+   - Push any changes to your GitHub repository
+   - Render will automatically redeploy
+
+## 🛠️ Local Development
+
+### Prerequisites
+- Python 3.10+
+- pip
+- Git
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/lMarul/Budge-IT.git
+   cd Budge-IT
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Set up environment variables**:
+   Create a `.env` file in the root directory:
+   ```env
+   DATABASE_URL=your_supabase_connection_string
+   SECRET_KEY=your_secret_key
+   FLASK_ENV=development
+   ```
+
+4. **Run the application**:
+   ```bash
+   python wsgi.py
+   ```
+
+5. **Access the application**:
+   Open your browser and go to `http://localhost:5001`
+
+## 📊 Features
+
+- **User Authentication**: Secure login and registration system
+- **Transaction Management**: Add, edit, and delete income/expense transactions
+- **Category Management**: Custom categories for better organization
+- **Data Visualization**: Charts and graphs for financial insights
+- **Admin Panel**: User management and system administration
+- **Responsive Design**: Works on desktop and mobile devices
+
+## 🗄️ Database
+
+The application uses **Supabase** (PostgreSQL) as the primary database with automatic fallback to SQLite for development.
+
+### Database Schema
+- **Users**: User accounts and authentication
+- **Categories**: Transaction categories (income/expense)
+- **Transactions**: Financial transactions with metadata
+
+## 🚀 Deployment
+
+### Render Deployment
+The application is configured for deployment on Render with:
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `gunicorn wsgi:app --timeout 120 --workers 2 --worker-class sync --max-requests 1000 --max-requests-jitter 100`
+- **Environment**: Python 3.10.13
+
+### Environment Variables
+Set these in your Render dashboard:
+- `DATABASE_URL`: Your Supabase PostgreSQL connection string
+- `SECRET_KEY`: A secure secret key for Flask sessions
+- `FLASK_ENV`: Set to `production`
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Failed**
+   - Check your `DATABASE_URL` environment variable
+   - Verify Supabase connection string format
+   - Ensure Supabase service is running
+
+2. **Application Won't Start**
+   - Check Render logs for error messages
+   - Verify all dependencies are in `requirements.txt`
+   - Ensure `wsgi.py` is properly configured
+
+3. **Supabase Connection Limits**
+   - Wait for connection limits to reset (15-30 minutes)
+   - Consider upgrading Supabase plan
+   - Monitor with health check endpoints
+
+### Getting Help
+
+1. **Check Render Logs**: View deployment logs in Render dashboard
+2. **Use Health Endpoints**: Monitor application status via provided endpoints
+3. **Review Error Messages**: Check browser console and server logs
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 👥 Team
+
+- **Anthony** - Backend Development
+- **Marwin** - Frontend Development  
+- **Nika** - Database Design
+- **Vince** - System Architecture
+- **Vinz** - UI/UX Design
+
+---
+
+**Note**: If you're experiencing Supabase connection issues, your data is safe! The application will automatically reconnect once connection limits are reset.

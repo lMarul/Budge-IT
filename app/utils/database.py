@@ -5,10 +5,61 @@ import json
 from datetime import datetime
 from flask import flash
 import logging
+import time
+from sqlalchemy.exc import OperationalError, DisconnectionError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# --- Database Connection Health Check ---
+
+def check_database_connection():
+    """
+    Check if the database connection is healthy.
+    
+    Returns:
+        bool: True if connection is healthy, False otherwise
+    """
+    try:
+        from app import db
+        # Try a simple query to test connection
+        db.session.execute(db.text('SELECT 1'))
+        db.session.commit()
+        return True
+    except (OperationalError, DisconnectionError) as e:
+        logger.warning(f"Database connection check failed: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error during connection check: {e}")
+        return False
+
+def retry_database_operation(operation, max_retries=3, delay=1):
+    """
+    Retry a database operation with exponential backoff.
+    
+    Args:
+        operation: Function to retry
+        max_retries: Maximum number of retry attempts
+        delay: Initial delay between retries in seconds
+    
+    Returns:
+        Result of the operation or None if all retries failed
+    """
+    for attempt in range(max_retries):
+        try:
+            return operation()
+        except (OperationalError, DisconnectionError) as e:
+            if attempt == max_retries - 1:
+                logger.error(f"Database operation failed after {max_retries} attempts: {e}")
+                return None
+            
+            wait_time = delay * (2 ** attempt)  # Exponential backoff
+            logger.warning(f"Database operation failed (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s: {e}")
+            time.sleep(wait_time)
+        except Exception as e:
+            logger.error(f"Unexpected error in database operation: {e}")
+            return None
 
 # --- Jinja2 Custom Filters ---
 def datetimeformat(value, format='%B %d, %Y'):
