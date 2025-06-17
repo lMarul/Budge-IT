@@ -32,11 +32,11 @@ class Config:
     """
     
     # Flask secret key for session management and CSRF protection
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-change-in-production'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
     
     # SQLAlchemy Database configuration for Supabase
     SQLALCHEMY_DATABASE_URI = get_database_url() or \
-        'postgresql://postgres:password@localhost:5432/budget_tracker'
+        'sqlite:///app.db'  # Fallback to SQLite if no DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Legacy JSON database file (for migration purposes)
@@ -60,9 +60,9 @@ class DevelopmentConfig(Config):
     HOST = '127.0.0.1'
     PORT = 5001
     
-    # Development database URL (can be local PostgreSQL or Supabase)
+    # Development database URL (use environment variable or SQLite fallback)
     SQLALCHEMY_DATABASE_URI = get_database_url() or \
-        'postgresql://postgres:password@localhost:5432/budget_tracker_dev'
+        'sqlite:///dev_budget_tracker.db'
 
 class ProductionConfig(Config):
     """
@@ -76,9 +76,9 @@ class ProductionConfig(Config):
     PORT = int(os.environ.get('PORT', 10000))  # Render default port
     
     # Use environment variable for secret key in production
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'production-secret-key-change-this'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(32).hex()
     
-    # Production database URL (should be Supabase)
+    # Production database URL (should be Supabase via DATABASE_URL)
     SQLALCHEMY_DATABASE_URI = get_database_url()
 
 class TestingConfig(Config):

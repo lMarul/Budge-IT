@@ -18,7 +18,7 @@ def create_app(config_name=None):
     database_url = os.environ.get('DATABASE_URL')
     
     if database_url and database_url.startswith('postgresql://'):
-        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here')
+        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or os.urandom(32).hex()
         app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['DEBUG'] = False
@@ -42,7 +42,7 @@ def create_app(config_name=None):
         print("✅ Your data is safe in Supabase!")
     else:
         # Fallback to SQLite only if no DATABASE_URL
-        app.config['SECRET_KEY'] = 'dev-secret-key'
+        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['DEBUG'] = True

@@ -169,10 +169,52 @@ Once deployed, your app will be available at:
 
 ## 🛡️ Security
 
-- Environment variables for all sensitive data
-- SQLAlchemy ORM for secure database operations
-- Flask-Login for session management
-- Supabase Row Level Security (RLS) policies
+### Environment Variables
+**IMPORTANT**: Never commit sensitive information to your repository!
+
+1. **Create a `.env` file** (not tracked by git):
+   ```env
+   # Copy from env.example and fill in your actual values
+   SECRET_KEY=your-super-secure-secret-key-here
+   DATABASE_URL=postgresql://postgres:[YOUR_PASSWORD]@[YOUR_HOST]:5432/postgres
+   DEBUG=False
+   ```
+
+2. **Generate a secure SECRET_KEY**:
+   ```python
+   import secrets
+   print(secrets.token_hex(32))
+   ```
+
+3. **Get your Supabase DATABASE_URL**:
+   - Go to your Supabase project dashboard
+   - Navigate to Settings > Database
+   - Copy the connection string
+
+### Security Features
+- ✅ **Environment variables** for all sensitive data
+- ✅ **Secure secret key generation** using `os.urandom()`
+- ✅ **SQLAlchemy ORM** for secure database operations
+- ✅ **Flask-Login** for session management
+- ✅ **Supabase Row Level Security (RLS)** policies
+- ✅ **No hardcoded passwords** in source code
+- ✅ **Automatic fallback** to SQLite for development
+
+### Production Security Checklist
+- [ ] Set `SECRET_KEY` environment variable
+- [ ] Set `DATABASE_URL` environment variable
+- [ ] Set `DEBUG=False` in production
+- [ ] Use HTTPS in production
+- [ ] Regularly rotate secret keys
+- [ ] Monitor application logs
+- [ ] Keep dependencies updated
+
+### What's Secured
+- ✅ **Database passwords** - stored in environment variables
+- ✅ **Flask secret keys** - auto-generated if not provided
+- ✅ **Connection strings** - no hardcoded values
+- ✅ **Debug information** - disabled in production
+- ✅ **Session data** - encrypted with secure keys
 
 ## 🚀 Live Deployment
 
