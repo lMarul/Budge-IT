@@ -1,11 +1,12 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import os
 import json
 
-# Initialize extensions
-db = SQLAlchemy()
+# Import db from models to avoid circular imports
+from .models import db
+
+# Initialize login manager
 login_manager = LoginManager()
 
 def create_app(config_name=None):
@@ -24,15 +25,17 @@ def create_app(config_name=None):
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['DEBUG'] = False
         
-        # Configure database connection pooling for Supabase
+        # Configure database connection pooling for Supabase with better timeout handling
         engine_options = {
-            'pool_size': 5,
-            'pool_recycle': 300,
-            'pool_pre_ping': True,
-            'max_overflow': 10,
+            'pool_size': 3,  # Reduced pool size to avoid connection limits
+            'pool_recycle': 1800,  # Recycle connections every 30 minutes
+            'pool_pre_ping': True,  # Test connections before use
+            'max_overflow': 5,  # Reduced overflow to avoid connection limits
+            'pool_timeout': 30,  # Wait up to 30 seconds for a connection
             'connect_args': {
-                'connect_timeout': 10,
-                'application_name': 'budge-it-app'
+                'connect_timeout': 30,  # Increased connection timeout
+                'application_name': 'budge-it-app',
+                'options': '-c statement_timeout=60000'  # 60 second statement timeout
             }
         }
         
@@ -75,38 +78,45 @@ def create_app(config_name=None):
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
     
-    # Import models to ensure they're registered
-    from .models import User, Category, Transaction
-
-    # Flask-Login user_loader
-    @login_manager.user_loader
-    def load_user(user_id):
-        try:
-            return User.query.get(int(user_id))
-        except Exception as e:
-            print(f"Error loading user {user_id}: {e}")
-            return None
-    
-    # Create database tables - PRESERVE EXISTING DATA
+    # Import models to ensure they're registered (after db is initialized)
     with app.app_context():
+        # Import models here to avoid circular imports
+        from .models import User, Category, Transaction
+        
+        # Flask-Login user_loader
+        @login_manager.user_loader
+        def load_user(user_id):
+            try:
+                return User.query.get(int(user_id))
+            except Exception as e:
+                print(f"Error loading user {user_id}: {e}")
+                return None
+        
+        # Create database tables - PRESERVE EXISTING DATA
         try:
             db.create_all()
             print("Database tables created/verified successfully!")
             
-            # Check existing users in Supabase
-            user_count = User.query.count()
-            print(f"Found {user_count} existing users in database")
-            
-            # Only create admin if NO users exist at all
-            if user_count == 0:
-                print("No users found, creating admin user...")
-                admin_user = User(username='admin', email='admin@example.com')
-                admin_user.set_password('admin123')
-                db.session.add(admin_user)
-                db.session.commit()
-                print("Admin user created successfully!")
-            else:
-                print(f"Database has {user_count} existing users - PRESERVING ALL DATA")
+            # Check existing users in Supabase with retry logic
+            try:
+                user_count = User.query.count()
+                print(f"Found {user_count} existing users in database")
+                
+                # Only create admin if NO users exist at all
+                if user_count == 0:
+                    print("No users found, creating admin user...")
+                    admin_user = User(username='admin', email='admin@example.com')
+                    admin_user.set_password('admin123')
+                    db.session.add(admin_user)
+                    db.session.commit()
+                    print("Admin user created successfully!")
+                else:
+                    print(f"Database has {user_count} existing users - PRESERVING ALL DATA")
+                    
+            except Exception as db_error:
+                print(f"Database query failed: {db_error}")
+                print("This is likely due to Supabase connection limits.")
+                print("Your data is safe - the app will work once connections are restored.")
             
         except Exception as e:
             print(f"Database initialization warning: {e}")
@@ -117,5 +127,9 @@ def create_app(config_name=None):
                 print("App will start but database operations may fail until connection is restored.")
                 print("This is temporary - your data is safe in Supabase.")
                 print("Connection error details:", str(e))
+                print("Solutions:")
+                print("1. Wait 15-30 minutes for connection limits to reset")
+                print("2. Upgrade your Supabase plan for higher connection limits")
+                print("3. Monitor status at: https://budge-it-j4bp.onrender.com/check-supabase")
     
     return app

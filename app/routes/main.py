@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, date
 # Import login decorator for protected routes
 from app.decorators import login_required
 # Import models for database operations
-from app.models import User, Category, Transaction
+from app.models import User, Category, Transaction, db
 # Import database utility functions
 from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password
 import os
