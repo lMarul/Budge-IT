@@ -558,4 +558,101 @@ def migrate_from_json(json_file_path):
         logger.info(f"Migration from {json_file_path} completed successfully")
     except Exception as e:
         logger.error(f"Migration failed: {e}")
-        raise 
+        raise
+
+def create_common_users():
+    """
+    Create common users for testing and recovery.
+    
+    This function creates a set of common users that might have existed
+    in the previous database, allowing users to log in with familiar credentials.
+    """
+    try:
+        # Import models here to avoid circular imports
+        from app.models import User
+        from app import db
+        
+        # List of common users to create
+        common_users = [
+            {'username': 'admin', 'email': 'admin@example.com', 'password': 'admin123'},
+            {'username': 'user1', 'email': 'user1@example.com', 'password': 'password123'},
+            {'username': 'test', 'email': 'test@example.com', 'password': 'test123'},
+            {'username': 'demo', 'email': 'demo@example.com', 'password': 'demo123'},
+            {'username': 'maru', 'email': 'maru@example.com', 'password': 'maru123'},
+            {'username': 'anthony', 'email': 'anthony@example.com', 'password': 'anthony123'},
+            {'username': 'vince', 'email': 'vince@example.com', 'password': 'vince123'},
+            {'username': 'marwin', 'email': 'marwin@example.com', 'password': 'marwin123'},
+        ]
+        
+        created_count = 0
+        for user_data in common_users:
+            # Check if user already exists
+            existing_user = User.query.filter_by(username=user_data['username']).first()
+            if not existing_user:
+                # Create new user
+                user = User(username=user_data['username'], email=user_data['email'])
+                user.set_password(user_data['password'])
+                db.session.add(user)
+                created_count += 1
+                
+                # Create preset categories for the new user
+                create_preset_categories(user.id)
+        
+        db.session.commit()
+        logger.info(f"Created {created_count} common users successfully")
+        return created_count
+        
+    except Exception as e:
+        # Import db here to avoid circular imports
+        from app import db
+        db.session.rollback()
+        logger.error(f"Error creating common users: {e}")
+        return 0
+
+def get_all_users():
+    """
+    Get all users in the database.
+    
+    Returns:
+        list: List of all User objects
+    """
+    try:
+        # Import models here to avoid circular imports
+        from app.models import User
+        return User.query.all()
+    except Exception as e:
+        logger.error(f"Error getting all users: {e}")
+        return []
+
+def reset_user_password(username, new_password):
+    """
+    Reset a user's password.
+    
+    Args:
+        username: Username of the user
+        new_password: New password to set
+    
+    Returns:
+        bool: True if password reset successful, False otherwise
+    """
+    try:
+        # Import models here to avoid circular imports
+        from app.models import User
+        from app import db
+        
+        user = User.query.filter_by(username=username).first()
+        if user:
+            user.set_password(new_password)
+            db.session.commit()
+            logger.info(f"Password reset successful for user {username}")
+            return True
+        else:
+            logger.warning(f"User {username} not found")
+            return False
+            
+    except Exception as e:
+        # Import db here to avoid circular imports
+        from app import db
+        db.session.rollback()
+        logger.error(f"Error resetting password for user {username}: {e}")
+        return False 

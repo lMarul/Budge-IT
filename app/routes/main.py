@@ -9,7 +9,7 @@ from app.decorators import login_required
 # Import models for database operations
 from app.models import User, Category, Transaction
 # Import database utility functions
-from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id
+from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password
 
 # Create main blueprint for organizing application routes
 main_bp = Blueprint('main', __name__)
@@ -867,4 +867,116 @@ def get_categories():
         })
     
     # Return categories as JSON for AJAX requests
-    return jsonify(categories_data) 
+    return jsonify(categories_data)
+
+# Route to create common users
+@main_bp.route('/create-users')
+def create_users():
+    """
+    Create common users for testing and recovery.
+    
+    Returns:
+        dict: Response with user creation status
+    """
+    try:
+        from app.utils.database import create_common_users, get_all_users
+        
+        # Create common users
+        created_count = create_common_users()
+        
+        # Get all users
+        all_users = get_all_users()
+        user_list = []
+        for user in all_users:
+            user_list.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'created_at': user.created_at.isoformat() if user.created_at else None
+            })
+        
+        return jsonify({
+            'status': 'success',
+            'created_count': created_count,
+            'total_users': len(all_users),
+            'users': user_list,
+            'message': f'Created {created_count} new users. Total users: {len(all_users)}'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Failed to create users'
+        }), 500
+
+# Route to list all users
+@main_bp.route('/list-users')
+def list_users():
+    """
+    List all users in the database.
+    
+    Returns:
+        dict: Response with user list
+    """
+    try:
+        from app.utils.database import get_all_users
+        
+        all_users = get_all_users()
+        user_list = []
+        for user in all_users:
+            user_list.append({
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'created_at': user.created_at.isoformat() if user.created_at else None
+            })
+        
+        return jsonify({
+            'status': 'success',
+            'total_users': len(all_users),
+            'users': user_list
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Failed to list users'
+        }), 500
+
+# Route to reset user password
+@main_bp.route('/reset-password/<username>/<new_password>')
+def reset_password(username, new_password):
+    """
+    Reset a user's password.
+    
+    Args:
+        username: Username of the user
+        new_password: New password to set
+    
+    Returns:
+        dict: Response with password reset status
+    """
+    try:
+        from app.utils.database import reset_user_password
+        
+        success = reset_user_password(username, new_password)
+        
+        if success:
+            return jsonify({
+                'status': 'success',
+                'message': f'Password reset successful for user {username}'
+            }), 200
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': f'User {username} not found'
+            }), 404
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Failed to reset password'
+        }), 500 

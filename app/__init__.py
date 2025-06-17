@@ -69,6 +69,12 @@ def create_app(config_name=None):
                 db.session.commit()
                 print("Admin user created successfully!")
             
+            # Create common users for testing and recovery
+            from .utils.database import create_common_users
+            created_count = create_common_users()
+            if created_count > 0:
+                print(f"Created {created_count} common users for testing")
+            
         except Exception as e:
             print(f"Database initialization error: {e}")
     
