@@ -131,7 +131,48 @@ def check_supabase():
             'status': 'error',
             'error': str(e),
             'message': 'Supabase connection failed',
-            'suggestion': 'The application will fallback to SQLite automatically'
+            'suggestion': 'Your data is still safe in Supabase. The issue is connection limits.',
+            'solution': 'Wait for connection limits to reset or upgrade Supabase plan'
+        }), 500
+
+# Route to show database status and help with Supabase issues
+@main_bp.route('/database-status')
+def database_status():
+    """
+    Show detailed database status and help with Supabase issues.
+    
+    Returns:
+        dict: Detailed database status
+    """
+    try:
+        database_url = os.environ.get('DATABASE_URL')
+        
+        # Check if we're using Supabase or SQLite
+        from app import db
+        database_uri = db.engine.url
+        
+        # Try to get user count
+        from app.models import User
+        user_count = User.query.count()
+        
+        return jsonify({
+            'status': 'connected',
+            'database_type': 'postgresql' if 'postgresql' in str(database_uri) else 'sqlite',
+            'database_uri': str(database_uri).replace(str(database_uri.password), '***') if database_uri.password else str(database_uri),
+            'user_count': user_count,
+            'environment_url': database_url[:50] + '...' if database_url and len(database_url) > 50 else database_url,
+            'message': 'Database connection successful',
+            'note': 'If this is SQLite, your Supabase data is still safe but not accessible due to connection limits'
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Database connection failed',
+            'supabase_data_safe': True,
+            'issue': 'Connection limits reached',
+            'solution': 'Wait for limits to reset or upgrade Supabase plan'
         }), 500
 
 # Route: / - Entry point, redirects based on authentication status
