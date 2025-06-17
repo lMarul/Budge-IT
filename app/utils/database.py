@@ -25,8 +25,9 @@ def check_database_connection():
     try:
         # Import db here to avoid circular imports
         from app import db
+        from sqlalchemy import text
         # Try a simple query with timeout
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         db.session.commit()
         return True
     except (OperationalError, TimeoutError) as e:
