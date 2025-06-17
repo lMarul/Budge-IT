@@ -83,13 +83,14 @@ def create_app(config_name=None):
         # Import models here to avoid circular imports
         from .models import User, Category, Transaction
         
-        # Flask-Login user_loader
+        # Flask-Login user_loader with fallback
         @login_manager.user_loader
         def load_user(user_id):
             try:
                 return User.query.get(int(user_id))
             except Exception as e:
                 print(f"Error loading user {user_id}: {e}")
+                # Return None to force re-authentication if database is down
                 return None
         
         # Create database tables - PRESERVE EXISTING DATA
@@ -117,6 +118,7 @@ def create_app(config_name=None):
                 print(f"Database query failed: {db_error}")
                 print("This is likely due to Supabase connection limits.")
                 print("Your data is safe - the app will work once connections are restored.")
+                print("Users will need to log in again once database is available.")
             
         except Exception as e:
             print(f"Database initialization warning: {e}")
@@ -131,5 +133,6 @@ def create_app(config_name=None):
                 print("1. Wait 15-30 minutes for connection limits to reset")
                 print("2. Upgrade your Supabase plan for higher connection limits")
                 print("3. Monitor status at: https://budge-it-j4bp.onrender.com/check-supabase")
+                print("4. Check auth health at: https://budge-it-j4bp.onrender.com/auth-health")
     
     return app

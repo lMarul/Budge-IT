@@ -1,7 +1,7 @@
 # Anthony - Updated for SQLAlchemy
 
 # Import Flask components for authentication routes
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 # Import datetime for timestamp handling
 from datetime import datetime
 # Import User and Category models for database operations
@@ -9,7 +9,11 @@ from app.models import User, Category
 # Import login decorator for protected routes
 from app.decorators import login_required
 # Import database utility functions
-from app.utils.database import create_user, authenticate_user, get_user_by_username, create_category
+from app.utils.database import create_user, authenticate_user, get_user_by_username, create_category, check_database_connection
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Create authentication blueprint for organizing routes
 auth_bp = Blueprint('auth', __name__)
@@ -18,7 +22,7 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """
-    Handles user login functionality.
+    Handles user login functionality with improved error handling.
     
     This route processes both GET and POST requests for user authentication.
     GET requests display the login form, while POST requests validate
@@ -31,27 +35,42 @@ def login():
     """
     # Handle POST request for login form submission
     if request.method == 'POST':
-        # Get username and password from form data
-        username = request.form['username']
-        password = request.form['password']
+        try:
+            # Get username and password from form data
+            username = request.form['username']
+            password = request.form['password']
 
-        # Authenticate user with provided credentials
-        user = authenticate_user(username, password)
+            # Check database connection first
+            if not check_database_connection():
+                logger.error("Database connection failed during login attempt")
+                flash('Database connection is temporarily unavailable. Please try again in a few minutes.', 'error')
+                return render_template('login.html')
 
-        # If authentication successful, create session
-        if user:
-            # Store user ID and username in session
-            session['user_id'] = user.id
-            session['username'] = user.username
-            
-            # Redirect admin users to admin dashboard, others to regular dashboard
-            if username == 'admin':
-                return redirect(url_for('admin.dashboard'))
+            # Authenticate user with provided credentials
+            user = authenticate_user(username, password)
+
+            # If authentication successful, create session
+            if user:
+                # Store user ID and username in session
+                session['user_id'] = user.id
+                session['username'] = user.username
+                
+                logger.info(f"User {username} logged in successfully")
+                
+                # Redirect admin users to admin dashboard, others to regular dashboard
+                if username == 'admin':
+                    return redirect(url_for('admin.dashboard'))
+                else:
+                    return redirect(url_for('main.dashboard'))
             else:
-                return redirect(url_for('main.dashboard'))
-        else:
-            # Show error message for invalid credentials
-            pass
+                # Show error message for invalid credentials
+                flash('Invalid username or password. Please try again.', 'error')
+                logger.warning(f"Failed login attempt for username: {username}")
+                
+        except Exception as e:
+            logger.error(f"Error during login process: {e}")
+            flash('An error occurred during login. Please try again.', 'error')
+    
     # Render login template for GET requests
     return render_template('login.html')
 
@@ -145,4 +164,45 @@ def logout():
         <p>Logging out...</p>
     </body>
     </html>
-    ''' 
+    '''
+
+# Health check endpoint for authentication
+@auth_bp.route('/auth-health')
+def auth_health_check():
+    """
+    Health check endpoint for authentication system.
+    
+    Returns:
+        dict: Authentication system health status
+    """
+    try:
+        # Check database connection
+        db_healthy = check_database_connection()
+        
+        # Try to get user count
+        try:
+            from app.models import User
+            user_count = User.query.count()
+            user_query_healthy = True
+        except Exception as e:
+            user_count = 0
+            user_query_healthy = False
+            logger.error(f"User query failed: {e}")
+        
+        return jsonify({
+            'status': 'healthy' if db_healthy and user_query_healthy else 'degraded',
+            'database_connection': db_healthy,
+            'user_query': user_query_healthy,
+            'user_count': user_count,
+            'timestamp': datetime.utcnow().isoformat(),
+            'service': 'auth-system'
+        }), 200 if db_healthy and user_query_healthy else 503
+        
+    except Exception as e:
+        logger.error(f"Auth health check failed: {e}")
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.utcnow().isoformat(),
+            'service': 'auth-system'
+        }), 500 

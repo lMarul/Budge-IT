@@ -303,7 +303,7 @@ def create_preset_categories(user_id):
 
 def authenticate_user(username, password):
     """
-    Authenticate a user login attempt.
+    Authenticate a user login attempt with retry logic for database connection issues.
     
     Args:
         username: Username to authenticate
@@ -312,20 +312,24 @@ def authenticate_user(username, password):
     Returns:
         User or None: User object if authentication successful, None otherwise
     """
-    try:
-        # Import models here to avoid circular imports
-        from app.models import User
-        from app.models import db
-        
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            logger.info(f"User {username} authenticated successfully")
-            return user
-        logger.warning(f"Authentication failed for user {username}")
-        return None
-    except Exception as e:
-        logger.error(f"Error authenticating user {username}: {e}")
-        return None
+    def _authenticate():
+        try:
+            # Import models here to avoid circular imports
+            from app.models import User
+            from app.models import db
+            
+            user = User.query.filter_by(username=username).first()
+            if user and user.check_password(password):
+                logger.info(f"User {username} authenticated successfully")
+                return user
+            logger.warning(f"Authentication failed for user {username}")
+            return None
+        except Exception as e:
+            logger.error(f"Error authenticating user {username}: {e}")
+            raise
+    
+    # Use retry logic for database operations
+    return retry_database_operation(_authenticate, max_retries=3, delay=2)
 
 def get_user_by_id(user_id):
     """
