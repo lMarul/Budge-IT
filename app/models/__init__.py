@@ -3,10 +3,9 @@
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
-from flask_sqlalchemy import SQLAlchemy
 
-# Create a local db instance to avoid circular imports
-db = SQLAlchemy()
+# Import db from the main app to avoid circular imports
+from app import db
 
 class User(db.Model):
     """

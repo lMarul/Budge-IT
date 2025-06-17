@@ -22,7 +22,7 @@ def check_database_connection():
         bool: True if connection is healthy, False otherwise
     """
     try:
-        from app.models import db
+        from app import db
         # Try a simple query to test connection
         db.session.execute(db.text('SELECT 1'))
         db.session.commit()
@@ -142,7 +142,7 @@ def get_next_id(model_class):
     """
     try:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         # Get the maximum ID from the table
         max_id = db.session.query(db.func.max(model_class.id)).scalar()
         # Return maximum ID + 1, or 1 if table is empty
@@ -160,7 +160,7 @@ def initialize_database(app):
     """
     try:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         # Initialize SQLAlchemy with the app
         db.init_app(app)
         
@@ -187,12 +187,12 @@ def save_database():
     """
     try:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         db.session.commit()
         logger.info("Database changes saved successfully!")
     except Exception as e:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         db.session.rollback()
         logger.error(f"Error saving database: {e}")
         print(f"Error saving data: {e}")
@@ -215,7 +215,7 @@ def create_user(username, email, password):
     try:
         # Import models and db here to avoid circular imports
         from app.models import User
-        from app.models import db
+        from app import db
         
         # Check if user already exists
         existing_user = User.query.filter_by(username=username).first()
@@ -238,7 +238,7 @@ def create_user(username, email, password):
         
     except Exception as e:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         db.session.rollback()
         logger.error(f"Error creating user {username}: {e}")
         return None
@@ -316,7 +316,7 @@ def authenticate_user(username, password):
         try:
             # Import models here to avoid circular imports
             from app.models import User
-            from app.models import db
+            from app import db
             
             user = User.query.filter_by(username=username).first()
             if user and user.check_password(password):
@@ -383,7 +383,7 @@ def create_category(user_id, name, category_type, color):
     try:
         # Import models here to avoid circular imports
         from app.models import Category
-        from app.models import db
+        from app import db
         
         category = Category(
             user_id=user_id,
@@ -400,7 +400,7 @@ def create_category(user_id, name, category_type, color):
         
     except Exception as e:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         db.session.rollback()
         logger.error(f"Error creating category {name}: {e}")
         return None
@@ -445,7 +445,7 @@ def create_transaction(user_id, amount, category_id, transaction_type, date, ite
     try:
         # Import models here to avoid circular imports
         from app.models import Transaction
-        from app.models import db
+        from app import db
         
         transaction = Transaction(
             user_id=user_id,
@@ -464,7 +464,7 @@ def create_transaction(user_id, amount, category_id, transaction_type, date, ite
         
     except Exception as e:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         db.session.rollback()
         logger.error(f"Error creating transaction {item_name}: {e}")
         return None
@@ -525,7 +525,7 @@ def update_transaction(transaction_id, user_id, amount, item_name, date, categor
     try:
         # Import models here to avoid circular imports
         from app.models import Category
-        from app.models import db
+        from app import db
         
         transaction = get_transaction_by_id(transaction_id, user_id)
         if not transaction:
@@ -551,7 +551,7 @@ def update_transaction(transaction_id, user_id, amount, item_name, date, categor
         
     except Exception as e:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         db.session.rollback()
         logger.error(f"Error updating transaction {transaction_id}: {e}")
         return False
@@ -569,7 +569,7 @@ def delete_transaction(transaction_id, user_id):
     """
     try:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         
         transaction = get_transaction_by_id(transaction_id, user_id)
         if not transaction:
@@ -593,7 +593,7 @@ def delete_transaction(transaction_id, user_id):
         
     except Exception as e:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         db.session.rollback()
         logger.error(f"Error deleting transaction {transaction_id}: {e}")
         return None
@@ -625,7 +625,7 @@ def create_common_users():
     try:
         # Import models here to avoid circular imports
         from app.models import User
-        from app.models import db
+        from app import db
         
         # List of common users to create
         common_users = [
@@ -659,7 +659,7 @@ def create_common_users():
         
     except Exception as e:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         db.session.rollback()
         logger.error(f"Error creating common users: {e}")
         return 0
@@ -693,7 +693,7 @@ def reset_user_password(username, new_password):
     try:
         # Import models here to avoid circular imports
         from app.models import User
-        from app.models import db
+        from app import db
         
         user = User.query.filter_by(username=username).first()
         if user:
@@ -707,7 +707,7 @@ def reset_user_password(username, new_password):
             
     except Exception as e:
         # Import db here to avoid circular imports
-        from app.models import db
+        from app import db
         db.session.rollback()
         logger.error(f"Error resetting password for user {username}: {e}")
         return False 

@@ -7,7 +7,9 @@ from datetime import datetime, timedelta, date
 # Import login decorator for protected routes
 from app.decorators import login_required
 # Import models for database operations
-from app.models import User, Category, Transaction, db
+from app.models import User, Category, Transaction
+# Import db from main app
+from app import db
 # Import database utility functions
 from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password
 import os
@@ -68,7 +70,7 @@ def test_database():
         dict: Database connection status
     """
     try:
-        from app.models import User, db
+        from app.models import User
         user_count = User.query.count()
         
         # Check if we're using Supabase or SQLite
@@ -147,7 +149,7 @@ def database_status():
         database_url = os.environ.get('DATABASE_URL')
         
         # Check if we're using Supabase or SQLite
-        from app.models import User, db
+        from app.models import User
         database_uri = db.engine.url
         
         # Try to get user count

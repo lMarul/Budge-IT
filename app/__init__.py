@@ -1,12 +1,11 @@
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import os
 import json
 
-# Import db from models to avoid circular imports
-from .models import db
-
-# Initialize login manager
+# Initialize extensions locally to avoid circular imports
+db = SQLAlchemy()
 login_manager = LoginManager()
 
 def create_app(config_name=None):
@@ -27,15 +26,15 @@ def create_app(config_name=None):
         
         # Configure database connection pooling for Supabase with better timeout handling
         engine_options = {
-            'pool_size': 3,  # Reduced pool size to avoid connection limits
+            'pool_size': 2,  # Reduced pool size to avoid connection limits
             'pool_recycle': 1800,  # Recycle connections every 30 minutes
             'pool_pre_ping': True,  # Test connections before use
-            'max_overflow': 5,  # Reduced overflow to avoid connection limits
-            'pool_timeout': 30,  # Wait up to 30 seconds for a connection
+            'max_overflow': 3,  # Reduced overflow to avoid connection limits
+            'pool_timeout': 20,  # Wait up to 20 seconds for a connection
             'connect_args': {
-                'connect_timeout': 30,  # Increased connection timeout
+                'connect_timeout': 20,  # Reduced connection timeout
                 'application_name': 'budge-it-app',
-                'options': '-c statement_timeout=60000'  # 60 second statement timeout
+                'options': '-c statement_timeout=30000'  # 30 second statement timeout
             }
         }
         
