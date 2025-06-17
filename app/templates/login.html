@@ -22,6 +22,17 @@
             <p class="text-gray-600 mt-2">Sign in to your account</p>
         </div>
 
+        <!-- Flash messages for user feedback -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="mb-4 p-4 rounded-lg {% if category == 'error' %}bg-red-100 border border-red-400 text-red-700{% else %}bg-blue-100 border border-blue-400 text-blue-700{% endif %}">
+                        <p class="text-sm">{{ message }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <!-- Login form - submits to auth.login route via POST method -->
         <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-6">
             <!-- Username input field -->

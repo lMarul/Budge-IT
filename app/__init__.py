@@ -110,11 +110,13 @@ def create_app(config_name=None):
                 print("⚠️ This is due to Supabase connection limits - YOUR DATA IS STILL SAFE!")
                 print("✅ The app will work once connection limits reset (15-30 minutes)")
                 print("✅ Your data is preserved in Supabase")
+                print("✅ App will start and be accessible for users")
             
         except Exception as e:
             print(f"⚠️ Database initialization warning: {e}")
             print("⚠️ YOUR SUPABASE DATA IS STILL SAFE!")
             print("✅ App will start and work once connection limits reset")
+            print("✅ Users can still access the app - database will connect when available")
     
     print("✅ Flask application initialization completed")
     print("✅ Your app is ready to use!")

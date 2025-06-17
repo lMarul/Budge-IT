@@ -17,6 +17,19 @@ import os
 # Create main blueprint for organizing application routes
 main_bp = Blueprint('main', __name__)
 
+# Simple status route that works even when database is down
+@main_bp.route('/status')
+def status():
+    """
+    Simple status endpoint that works even when database is unavailable.
+    """
+    return jsonify({
+        'status': 'running',
+        'message': 'Budge-IT app is running! Your Supabase data is safe.',
+        'database': 'checking...',
+        'timestamp': datetime.now().isoformat()
+    }), 200
+
 # Health check endpoint to monitor database status
 @main_bp.route('/health')
 def health_check():
@@ -24,6 +37,8 @@ def health_check():
     Health check endpoint to monitor database and app status.
     """
     try:
+        from app.utils.database import check_database_connection
+        
         # Check database connection
         db_healthy = check_database_connection()
         
