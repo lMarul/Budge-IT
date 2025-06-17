@@ -68,11 +68,10 @@ def test_database():
         dict: Database connection status
     """
     try:
-        from app.models import User
+        from app.models import User, db
         user_count = User.query.count()
         
         # Check if we're using Supabase or SQLite
-        from app import db
         database_uri = db.engine.url
         
         return jsonify({
@@ -148,11 +147,10 @@ def database_status():
         database_url = os.environ.get('DATABASE_URL')
         
         # Check if we're using Supabase or SQLite
-        from app import db
+        from app.models import User, db
         database_uri = db.engine.url
         
         # Try to get user count
-        from app.models import User
         user_count = User.query.count()
         
         return jsonify({
