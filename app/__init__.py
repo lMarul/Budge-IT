@@ -48,6 +48,10 @@ def create_app(config_name=None):
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
     
+    # Initialize models with the db instance
+    from .models import init_models
+    init_models(db)
+    
     # Import models to ensure they're registered
     from .models import User, Category, Transaction
 

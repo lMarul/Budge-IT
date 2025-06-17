@@ -5,8 +5,6 @@ import json
 from datetime import datetime
 from flask import flash
 import logging
-from app import db
-from app.models import User, Category, Transaction
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -92,6 +90,8 @@ def get_next_id(model_class):
         int: Next available unique ID for the model
     """
     try:
+        # Import db here to avoid circular imports
+        from app import db
         # Get the maximum ID from the table
         max_id = db.session.query(db.func.max(model_class.id)).scalar()
         # Return maximum ID + 1, or 1 if table is empty
@@ -108,6 +108,8 @@ def initialize_database(app):
     the database is properly initialized and tables are created.
     """
     try:
+        # Import db here to avoid circular imports
+        from app import db
         # Initialize SQLAlchemy with the app
         db.init_app(app)
         
@@ -133,9 +135,13 @@ def save_database():
     This function commits any pending changes to the database.
     """
     try:
+        # Import db here to avoid circular imports
+        from app import db
         db.session.commit()
         logger.info("Database changes saved successfully!")
     except Exception as e:
+        # Import db here to avoid circular imports
+        from app import db
         db.session.rollback()
         logger.error(f"Error saving database: {e}")
         print(f"Error saving data: {e}")
@@ -156,6 +162,10 @@ def create_user(username, email, password):
         User: New user object or None if creation failed
     """
     try:
+        # Import models and db here to avoid circular imports
+        from app.models import User
+        from app import db
+        
         # Check if user already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
@@ -176,6 +186,8 @@ def create_user(username, email, password):
         return user
         
     except Exception as e:
+        # Import db here to avoid circular imports
+        from app import db
         db.session.rollback()
         logger.error(f"Error creating user {username}: {e}")
         return None

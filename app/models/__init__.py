@@ -5,10 +5,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
 from sqlalchemy import event
 
-# Import db from the main app module to avoid conflicts
-from app import db
+# We'll define the models without inheriting from db.Model initially
+# and then bind them to the db instance later
 
-class User(db.Model):
+class User:
     """
     User model for SQLAlchemy database.
     
@@ -16,16 +16,6 @@ class User(db.Model):
     to categories and transactions.
     """
     __tablename__ = 'users'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    categories = relationship('Category', backref='user', lazy=True, cascade='all, delete-orphan')
-    transactions = relationship('Transaction', backref='user', lazy=True, cascade='all, delete-orphan')
     
     def set_password(self, password):
         """Hash and set the user's password."""
@@ -47,7 +37,7 @@ class User(db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
-class Category(db.Model):
+class Category:
     """
     Category model for SQLAlchemy database.
     
@@ -55,16 +45,6 @@ class Category(db.Model):
     to users and transactions.
     """
     __tablename__ = 'categories'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    category_type = db.Column(db.String(20), nullable=False)  # 'income' or 'expense'
-    color = db.Column(db.String(7), nullable=False)  # Hex color code
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    transactions = relationship('Transaction', backref='category', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
         """Convert category object to dictionary for JSON serialization."""
@@ -80,7 +60,7 @@ class Category(db.Model):
     def __repr__(self):
         return f'<Category {self.name} ({self.category_type})>'
 
-class Transaction(db.Model):
+class Transaction:
     """
     Transaction model for SQLAlchemy database.
     
@@ -88,15 +68,6 @@ class Transaction(db.Model):
     to users and categories.
     """
     __tablename__ = 'transactions'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
-    amount = db.Column(db.Numeric(10, 2), nullable=False)
-    transaction_type = db.Column(db.String(20), nullable=False)  # 'income' or 'expense'
-    date = db.Column(db.Date, nullable=False)
-    item_name = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
         """Convert transaction object to dictionary for JSON serialization."""
@@ -114,10 +85,46 @@ class Transaction(db.Model):
     def __repr__(self):
         return f'<Transaction {self.item_name} ({self.amount})>'
 
+def init_models(db):
+    """Initialize the models with the database instance."""
+    global User, Category, Transaction
+    
+    # Add columns to User model
+    User.id = db.Column(db.Integer, primary_key=True)
+    User.username = db.Column(db.String(80), unique=True, nullable=False)
+    User.email = db.Column(db.String(120), unique=True, nullable=False)
+    User.password_hash = db.Column(db.String(255), nullable=False)
+    User.created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    User.categories = relationship('Category', backref='user', lazy=True, cascade='all, delete-orphan')
+    User.transactions = relationship('Transaction', backref='user', lazy=True, cascade='all, delete-orphan')
+    
+    # Add columns to Category model
+    Category.id = db.Column(db.Integer, primary_key=True)
+    Category.user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    Category.name = db.Column(db.String(100), nullable=False)
+    Category.category_type = db.Column(db.String(20), nullable=False)  # 'income' or 'expense'
+    Category.color = db.Column(db.String(7), nullable=False)  # Hex color code
+    Category.created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    Category.transactions = relationship('Transaction', backref='category', lazy=True, cascade='all, delete-orphan')
+    
+    # Add columns to Transaction model
+    Transaction.id = db.Column(db.Integer, primary_key=True)
+    Transaction.user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    Transaction.category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
+    Transaction.amount = db.Column(db.Numeric(10, 2), nullable=False)
+    Transaction.transaction_type = db.Column(db.String(20), nullable=False)  # 'income' or 'expense'
+    Transaction.date = db.Column(db.Date, nullable=False)
+    Transaction.item_name = db.Column(db.String(200), nullable=False)
+    Transaction.created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # Database initialization function
 def init_db(app):
     """Initialize the database with the Flask app."""
+    from app import db
     db.init_app(app)
+    
+    # Initialize models with the db instance
+    init_models(db)
     
     with app.app_context():
         # Create all tables
@@ -134,6 +141,7 @@ def migrate_from_json(json_file_path):
     """
     import json
     import os
+    from app import db
     
     if not os.path.exists(json_file_path):
         print(f"JSON file {json_file_path} not found. Skipping migration.")

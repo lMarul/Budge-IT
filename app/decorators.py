@@ -4,9 +4,6 @@
 from functools import wraps
 # Import Flask session, redirect, url_for, and flash for authentication
 from flask import session, redirect, url_for, flash
-# Import SQLAlchemy models
-from app import db
-from app.models import User
 
 def login_required(f):
     """
@@ -56,6 +53,8 @@ def admin_required(f):
             return redirect(url_for('auth.login'))
         
         try:
+            # Import User model here to avoid circular imports
+            from app.models import User
             # Get current user from database using SQLAlchemy
             user = User.query.get(session['user_id'])
             # Check if user exists and has admin username
@@ -86,6 +85,8 @@ def get_current_user():
         return None
     
     try:
+        # Import User model here to avoid circular imports
+        from app.models import User
         # Get current user from database using SQLAlchemy
         return User.query.get(session['user_id'])
     except Exception as e:
