@@ -3,10 +3,11 @@
 import os
 import json
 from datetime import datetime
-from flask import flash
+from flask import flash, current_app
 import logging
 import time
 from sqlalchemy.exc import OperationalError, DisconnectionError, SQLAlchemyError, TimeoutError
+from app.models import User, Category
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +23,8 @@ def check_database_connection():
         bool: True if connection is available, False otherwise
     """
     try:
+        # Import db here to avoid circular imports
+        from app import db
         # Try a simple query with timeout
         db.session.execute('SELECT 1')
         db.session.commit()
@@ -162,6 +165,9 @@ def create_user(username, email, password):
         User: Created user object or None if creation failed
     """
     try:
+        # Import db here to avoid circular imports
+        from app import db
+        
         # Check connection first
         if not check_database_connection():
             logger.error("Cannot create user - Supabase connection unavailable")
@@ -266,6 +272,9 @@ def authenticate_user(username, password):
         User: Authenticated user object or None if authentication failed
     """
     try:
+        # Import db here to avoid circular imports
+        from app import db
+        
         # Check connection first
         if not check_database_connection():
             logger.error("Cannot authenticate user - Supabase connection unavailable")
@@ -346,6 +355,9 @@ def create_category(name, user_id, category_type):
         Category: Created category object or None if creation failed
     """
     try:
+        # Import db here to avoid circular imports
+        from app import db
+        
         if not check_database_connection():
             logger.error("Cannot create category - Supabase connection unavailable")
             return None
