@@ -4,7 +4,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
 
-# Import db from the main app to avoid circular imports
+# Import db from the main app
 from app import db
 
 class User(db.Model):

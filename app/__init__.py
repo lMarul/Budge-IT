@@ -26,15 +26,15 @@ def create_app(config_name=None):
         
         # Configure database connection pooling for Supabase with better timeout handling
         engine_options = {
-            'pool_size': 2,  # Reduced pool size to avoid connection limits
+            'pool_size': 1,  # Minimal pool size to avoid connection limits
             'pool_recycle': 1800,  # Recycle connections every 30 minutes
             'pool_pre_ping': True,  # Test connections before use
-            'max_overflow': 3,  # Reduced overflow to avoid connection limits
-            'pool_timeout': 20,  # Wait up to 20 seconds for a connection
+            'max_overflow': 2,  # Minimal overflow to avoid connection limits
+            'pool_timeout': 10,  # Wait up to 10 seconds for a connection
             'connect_args': {
-                'connect_timeout': 20,  # Reduced connection timeout
+                'connect_timeout': 10,  # Minimal connection timeout
                 'application_name': 'budge-it-app',
-                'options': '-c statement_timeout=30000'  # 30 second statement timeout
+                'options': '-c statement_timeout=15000'  # 15 second statement timeout
             }
         }
         
@@ -77,22 +77,20 @@ def create_app(config_name=None):
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
     
-    # Import models to ensure they're registered (after db is initialized)
+    # Flask-Login user_loader with fallback
+    @login_manager.user_loader
+    def load_user(user_id):
+        try:
+            # Import User model here to avoid circular imports
+            from .models import User
+            return User.query.get(int(user_id))
+        except Exception as e:
+            print(f"Error loading user {user_id}: {e}")
+            # Return None to force re-authentication if database is down
+            return None
+    
+    # Initialize database tables
     with app.app_context():
-        # Import models here to avoid circular imports
-        from .models import User, Category, Transaction
-        
-        # Flask-Login user_loader with fallback
-        @login_manager.user_loader
-        def load_user(user_id):
-            try:
-                return User.query.get(int(user_id))
-            except Exception as e:
-                print(f"Error loading user {user_id}: {e}")
-                # Return None to force re-authentication if database is down
-                return None
-        
-        # Create database tables - PRESERVE EXISTING DATA (with timeout)
         try:
             print("🔄 Initializing database tables...")
             db.create_all()
@@ -101,6 +99,7 @@ def create_app(config_name=None):
             # Check existing users in Supabase with retry logic (non-blocking)
             try:
                 print("🔄 Checking existing users...")
+                from .models import User
                 user_count = User.query.count()
                 print(f"✅ Found {user_count} existing users in database")
                 
