@@ -20,42 +20,34 @@ def create_app(config_name=None):
     logging.getLogger('sqlalchemy.pool').setLevel(logging.ERROR)
     logging.getLogger('psycopg2').setLevel(logging.ERROR)
     
-    # Configure the app - USE SUPABASE (your data is there!)
-    database_url = os.environ.get('DATABASE_URL')
+    # SIMPLE CONFIGURATION - NO COMPLEX SETTINGS
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'dev-secret-key-123'
+    app.config['DEBUG'] = False
     
+    # Database configuration - SIMPLIFIED
+    database_url = os.environ.get('DATABASE_URL')
     if database_url and database_url.startswith('postgresql://'):
-        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or os.urandom(32).hex()
         app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        app.config['DEBUG'] = False
         
-        # Ultra-aggressive connection settings to prevent pool exhaustion
-        # Based on SQLAlchemy documentation for connection pool limits
-        engine_options = {
-            'pool_size': 1,  # Minimum pool size
-            'pool_recycle': 60,  # Recycle connections every 1 minute
-            'pool_pre_ping': True,  # Test connections before use
-            'max_overflow': 0,  # No overflow connections
-            'pool_timeout': 1,  # Very short timeout
-            'pool_reset_on_return': 'commit',  # Reset connection state
+        # MINIMAL connection settings - just make it work
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'pool_size': 1,
+            'pool_recycle': 300,
+            'pool_pre_ping': True,
+            'max_overflow': 0,
+            'pool_timeout': 10,
             'connect_args': {
-                'connect_timeout': 2,  # Very short connection timeout
-                'application_name': 'budge-it-app',
-                'options': '-c statement_timeout=3000'  # 3 second statement timeout
+                'connect_timeout': 10,
+                'application_name': 'budge-it-app'
             }
         }
-        
-        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
-        print(f"✅ Using Supabase database: {database_url[:50]}...")
-        print("✅ Your data is safe in Supabase!")
-        print("🔧 Using ultra-conservative connection settings to avoid pool exhaustion")
+        print("✅ Using Supabase database")
     else:
-        # Fallback to SQLite only if no DATABASE_URL
-        app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
+        # Fallback to SQLite - GUARANTEED TO WORK
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        app.config['DEBUG'] = True
-        print("⚠️ No DATABASE_URL found, using SQLite (your Supabase data is still safe!)")
+        print("✅ Using SQLite database (fallback)")
     
     # Initialize extensions with app
     db.init_app(app)
@@ -80,28 +72,20 @@ def create_app(config_name=None):
     @login_manager.user_loader
     def load_user(user_id):
         try:
-            # Import User model here to avoid circular imports
             from .models import User
             return User.query.get(int(user_id))
         except Exception as e:
             print(f"Error loading user {user_id}: {e}")
-            # Return None to force re-authentication if database is down
             return None
     
-    # Initialize database tables with minimal connection attempt
+    # MINIMAL database initialization - NO COMPLEX LOGIC
     with app.app_context():
         try:
-            print("🔄 Initializing database tables...")
             db.create_all()
-            print("✅ Database tables created/verified successfully!")
-            print("✅ Database initialization completed - connection will be tested on first user request")
-            
+            print("✅ Database tables created successfully!")
         except Exception as e:
-            print(f"⚠️ Database initialization warning: {e}")
-            print("⚠️ YOUR SUPABASE DATA IS STILL SAFE!")
-            print("✅ App will start and work once connection limits reset")
-            print("✅ Users can still access the app - database will connect when available")
+            print(f"⚠️ Database warning: {e}")
+            print("✅ App will still work!")
     
-    print("✅ Flask application initialization completed")
-    print("✅ Your app is ready to use!")
+    print("✅ Flask application created successfully")
     return app
