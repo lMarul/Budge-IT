@@ -8,8 +8,9 @@ backlog = 2048
 # Worker processes
 workers = 1
 worker_class = "sync"
-worker_connections = 1000
-timeout = 30
+worker_connections = 200
+# Increase timeout to 120 seconds to prevent worker timeouts on slow requests
+timeout = 120
 keepalive = 2
 
 # Restart workers after this many requests, to help prevent memory leaks
@@ -53,7 +54,7 @@ worker_tmp_dir = None
 worker_class = "sync"
 
 # Worker connections
-worker_connections = 1000
+worker_connections = 200
 
 # Timeout
 timeout = 30
@@ -68,4 +69,4 @@ limit_request_line = 4094
 limit_request_fields = 100
 
 # Limit request field size
-limit_request_field_size = 8190 
+limit_request_field_size = 8190
