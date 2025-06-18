@@ -27,18 +27,22 @@ def create_app(config_name=None):
     # Database configuration - SIMPLIFIED
     database_url = os.environ.get('DATABASE_URL')
     if database_url and database_url.startswith('postgresql://'):
+        # Force connect_timeout=5 for faster failure if unreachable
+        if 'connect_timeout' not in database_url:
+            if '?' in database_url:
+                database_url += '&connect_timeout=5'
+            else:
+                database_url += '?connect_timeout=5'
         app.config['SQLALCHEMY_DATABASE_URI'] = database_url
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        
-        # MINIMAL connection settings - just make it work
         app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
             'pool_size': 1,
             'pool_recycle': 300,
             'pool_pre_ping': True,
             'max_overflow': 0,
-            'pool_timeout': 10,
+            'pool_timeout': 5,
             'connect_args': {
-                'connect_timeout': 10,
+                'connect_timeout': 5,
                 'application_name': 'budge-it-app'
             }
         }
