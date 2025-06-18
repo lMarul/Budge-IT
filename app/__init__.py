@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 import os
 import json
+import logging
 
 # Initialize extensions locally to avoid circular imports
 db = SQLAlchemy()
@@ -13,6 +14,11 @@ def create_app(config_name=None):
     app = Flask(__name__, 
                 template_folder='templates',
                 static_folder='static')
+    
+    # Configure logging to suppress database warnings
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.ERROR)
+    logging.getLogger('sqlalchemy.pool').setLevel(logging.ERROR)
+    logging.getLogger('psycopg2').setLevel(logging.ERROR)
     
     # Configure the app - USE SUPABASE (your data is there!)
     database_url = os.environ.get('DATABASE_URL')

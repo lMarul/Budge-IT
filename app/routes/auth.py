@@ -22,7 +22,7 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """
-    Handles user login functionality with improved error handling.
+    Handles user login functionality with clean error handling.
     
     This route processes both GET and POST requests for user authentication.
     GET requests display the login form, while POST requests validate
@@ -43,7 +43,7 @@ def login():
             # Check database connection first
             if not check_database_connection():
                 logger.error("Database connection failed during login attempt")
-                flash('Supabase connection is temporarily unavailable. Your data is safe - please try again in 15-30 minutes.', 'error')
+                # No flash message - clean login experience
                 return render_template('login.html')
 
             # Authenticate user with provided credentials
@@ -63,13 +63,13 @@ def login():
                 else:
                     return redirect(url_for('main.dashboard'))
             else:
-                # Show error message for invalid credentials
+                # Show minimal error message for invalid credentials only
                 flash('Invalid username or password. Please try again.', 'error')
                 logger.warning(f"Failed login attempt for username: {username}")
                 
         except Exception as e:
             logger.error(f"Error during login process: {e}")
-            flash('Supabase connection issue. Your data is safe - please try again in 15-30 minutes.', 'error')
+            # No flash message for database issues - clean experience
     
     # Render login template for GET requests
     return render_template('login.html')

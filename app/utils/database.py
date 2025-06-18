@@ -9,8 +9,8 @@ import time
 from sqlalchemy.exc import OperationalError, DisconnectionError, SQLAlchemyError, TimeoutError
 from app.models import User, Category
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging - reduced verbosity for cleaner experience
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 # --- Database Connection Health Check ---
@@ -32,7 +32,8 @@ def check_database_connection():
         db.session.commit()
         return result == 1
     except (OperationalError, TimeoutError) as e:
-        logger.warning(f"Database connection timeout/error: {e}")
+        # Reduced logging - only log at debug level
+        logger.debug(f"Database connection timeout/error: {e}")
         return False
     except Exception as e:
         logger.error(f"Database connection check failed: {e}")
@@ -118,7 +119,7 @@ def retry_database_operation(operation, max_retries=1, delay=0.1):
                 return None
             
             wait_time = delay * (1.2 ** attempt)  # Very gentle backoff
-            logger.warning(f"Database operation failed (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s: {e}")
+            logger.debug(f"Database operation failed (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s: {e}")
             time.sleep(wait_time)
         except Exception as e:
             logger.error(f"Unexpected error in database operation: {e}")
