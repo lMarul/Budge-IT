@@ -20,7 +20,7 @@ def force_sqlite_fallback():
     """Force the app to use SQLite fallback."""
     global _use_fallback
     _use_fallback = True
-    logger.info("Forcing SQLite fallback mode")
+    logger.warning("Forcing SQLite fallback mode! Supabase/Postgres connection failed. Check your DATABASE_URL, network, or credentials.")
 
 def is_using_fallback():
     """Check if we're using fallback mode."""

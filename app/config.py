@@ -14,12 +14,18 @@ def get_database_url():
     Render provides DATABASE_URL in the format:
     postgresql://user:password@host:port/database
     
-    This function ensures the URL is properly formatted.
+    This function ensures the URL is properly formatted and adds connect_timeout.
     """
     database_url = os.environ.get('DATABASE_URL')
     if database_url and database_url.startswith('postgres://'):
         # Convert postgres:// to postgresql:// for newer versions
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    # Add connect_timeout if not present
+    if database_url and 'connect_timeout' not in database_url:
+        if '?' in database_url:
+            database_url += '&connect_timeout=10'
+        else:
+            database_url += '?connect_timeout=10'
     return database_url
 
 class Config:
@@ -102,4 +108,4 @@ config = {
     'production': ProductionConfig,
     'testing': TestingConfig,
     'default': DevelopmentConfig
-} 
+}
