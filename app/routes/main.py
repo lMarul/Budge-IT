@@ -452,116 +452,71 @@ def add_transaction():
 def history():
     """
     Displays the transaction history page for the current user.
-    
-    This route shows all transactions for the user with filtering capabilities
-    by date range, transaction type, and category. It also provides
-    transaction management features like editing and deletion.
-    
-    Returns:
-        str: Rendered history template with user's transactions and categories
     """
-    # Get current user ID and query parameters
+    from datetime import datetime, timedelta
     user_id = session['user_id']
-    period = request.args.get('period', 'month')  # Default to month
+    period = request.args.get('period', 'month')
     start_date = request.args.get('start_date') or request.args.get('start')
     end_date = request.args.get('end_date') or request.args.get('end')
     transaction_type = request.args.get('type')
     category_id = request.args.get('category_id')
-    
-    # Get all transactions for the user
-    transactions = get_transactions_by_user(user_id)
-    print(f"DEBUG: Found {len(transactions)} total transactions for user {user_id}")
-    print(f"DEBUG: Period: {period}, Start: {start_date}, End: {end_date}")
-    
-    # Apply filters
-    filtered_transactions = []
+
+    # Build base query
+    from app.models import Transaction
+    query = Transaction.query.filter_by(user_id=user_id)
+
+    # Date filtering
+    today = datetime.now().date()
+    if period == 'custom' and (start_date or end_date):
+        if start_date:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()
+            query = query.filter(Transaction.date >= start_dt)
+        if end_date:
+            end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
+            query = query.filter(Transaction.date <= end_dt)
+    elif period != 'all':
+        if period == 'today':
+            query = query.filter(Transaction.date == today)
+        elif period == 'week':
+            week_start = today - timedelta(days=today.weekday())
+            query = query.filter(Transaction.date >= week_start)
+        elif period == 'month':
+            month_start = today.replace(day=1)
+            query = query.filter(Transaction.date >= month_start)
+        elif period == 'year':
+            year_start = today.replace(month=1, day=1)
+            query = query.filter(Transaction.date >= year_start)
+
+    # Transaction type filtering
+    if transaction_type and transaction_type != 'both':
+        query = query.filter(Transaction.transaction_type == transaction_type)
+
+    # Category filtering
+    if category_id:
+        query = query.filter(Transaction.category_id == int(category_id))
+
+    # Get filtered transactions
+    transactions = query.order_by(Transaction.date.desc()).all()
+
+    # Enhance transactions with category name and color
     for transaction in transactions:
-        try:
-            # Date filtering - only apply if period is 'custom' or if specific dates are provided
-            if period == 'custom' and (start_date or end_date):
-                if start_date:
-                    start_dt = datetime.strptime(start_date, '%Y-%m-%d').date()
-                    if transaction.date < start_dt:
-                        continue
-                if end_date:
-                    end_dt = datetime.strptime(end_date, '%Y-%m-%d').date()
-                    if transaction.date > end_dt:
-                        continue
-            elif period != 'all':  # Apply period-based filtering for non-custom periods
-                today = datetime.now().date()
-                if period == 'today':
-                    if transaction.date != today:
-                        continue
-                elif period == 'week':
-                    week_start = today - timedelta(days=today.weekday())
-                    if transaction.date < week_start:
-                        continue
-                elif period == 'month':
-                    month_start = today.replace(day=1)
-                    if transaction.date < month_start:
-                        continue
-                elif period == 'year':
-                    year_start = today.replace(month=1, day=1)
-                    if transaction.date < year_start:
-                        continue
-            
-            # Transaction type filtering
-            if transaction_type and transaction_type != 'both' and transaction.transaction_type != transaction_type:
-                continue
-            
-            # Category filtering
-            if category_id and str(transaction.category_id) != category_id:
-                continue
-                
-            filtered_transactions.append(transaction)
-        except Exception as e:
-            print(f"DEBUG: Error filtering transaction {transaction.id}: {e}")
-            filtered_transactions.append(transaction)
-
-    print(f"DEBUG: After filtering: {len(filtered_transactions)} transactions")
-
-    # Enhance transactions with category name and color if not already present
-    for transaction in filtered_transactions:
-        category_id = getattr(transaction, 'category_id', None)
-        if category_id is not None:
-            # Get category information for transaction
-            category = Category.query.filter_by(id=category_id, user_id=user_id).first()
-            if category:
-                transaction.category_name = category.name
-                transaction.category_color = category.color
-            else:
-                transaction.category_name = 'Uncategorized'
-                transaction.category_color = '#6c757d'
+        cat = Category.query.filter_by(id=transaction.category_id, user_id=user_id).first()
+        if cat:
+            transaction.category_name = cat.name
+            transaction.category_color = cat.color
         else:
             transaction.category_name = 'Uncategorized'
             transaction.category_color = '#6c757d'
 
-    # Sort transactions by date, most recent first
-    filtered_transactions.sort(key=lambda x: x.date if hasattr(x, 'date') else datetime.fromisoformat(x['date']), reverse=True)
-    
     # Get categories for the edit modal
     income_categories = get_categories_by_user_and_type(user_id, 'income')
     expense_categories = get_categories_by_user_and_type(user_id, 'expense')
-    
-    # Convert categories to the format expected by the frontend
-    all_categories = []
-    for category in income_categories:
-        all_categories.append({
-            'id': category.id,
-            'name': category.name,
-            'type': category.category_type,
-            'color': category.color
-        })
-    for category in expense_categories:
-        all_categories.append({
-            'id': category.id,
-            'name': category.name,
-            'type': category.category_type,
-            'color': category.color
-        })
-    
-    print(f"DEBUG: Final transactions to render: {len(filtered_transactions)}")
-    return render_template('history.html', transactions=filtered_transactions, all_categories=all_categories)
+    all_categories = [
+        {'id': c.id, 'name': c.name, 'type': c.category_type, 'color': c.color}
+        for c in income_categories + expense_categories
+    ]
+
+    return render_template('history.html', transactions=transactions, all_categories=all_categories)
 
 # Route: /edit_transaction/<transaction_id> - Updates existing transaction details
 @main_bp.route('/edit_transaction/<int:transaction_id>', methods=['POST'])
@@ -1174,4 +1129,4 @@ def reset_password(username, new_password):
             'status': 'error',
             'error': str(e),
             'message': 'Failed to reset password'
-        }), 500 
+        }), 500
