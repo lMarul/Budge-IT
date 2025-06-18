@@ -313,6 +313,8 @@ def create_preset_categories(user_id):
         user_id: ID of the user to create categories for
     """
     try:
+        # Import db here to avoid circular imports
+        from app import db
         # Preset income categories
         income_categories = [
             {'name': 'Salary', 'color': '#28a745'},
@@ -359,6 +361,7 @@ def create_preset_categories(user_id):
         logger.info(f"Created preset categories for user {user_id}")
         
     except Exception as e:
+        from app import db
         db.session.rollback()
         logger.error(f"Error creating preset categories for user {user_id}: {e}")
         raise
@@ -790,4 +793,4 @@ def reset_user_password(username, new_password):
         from app import db
         db.session.rollback()
         logger.error(f"Error resetting password for user {username}: {e}")
-        return False 
+        return False
