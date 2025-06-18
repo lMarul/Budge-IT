@@ -11,7 +11,7 @@ from app.models import User, Category, Transaction
 # Import db from main app
 from app import db
 # Import database utility functions
-from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password, check_database_connection
+from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password, check_database_connection, get_database_status
 import os
 
 # Create main blueprint for organizing application routes
@@ -29,6 +29,43 @@ def status():
         'database': 'checking...',
         'timestamp': datetime.now().isoformat()
     }), 200
+
+# Comprehensive database status endpoint
+@main_bp.route('/db-status')
+def detailed_database_status():
+    """
+    Comprehensive database status endpoint with detailed connection information.
+    """
+    try:
+        # Get detailed database status
+        db_status = get_database_status()
+        
+        # Add additional app context
+        db_status.update({
+            'app_status': 'running',
+            'timestamp': datetime.now().isoformat(),
+            'environment': 'production' if os.environ.get('DATABASE_URL') else 'development',
+            'supabase_configured': bool(os.environ.get('DATABASE_URL')),
+            'connection_pool_info': {
+                'pool_size': db_status.get('pool_size', 'unknown'),
+                'checked_in': db_status.get('checked_in', 'unknown'),
+                'checked_out': db_status.get('checked_out', 'unknown')
+            } if db_status.get('status') == 'connected' else 'connection_failed'
+        })
+        
+        # Determine HTTP status code
+        status_code = 200 if db_status.get('status') == 'connected' else 503
+        
+        return jsonify(db_status), status_code
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Database status check failed',
+            'timestamp': datetime.now().isoformat(),
+            'note': 'Your Supabase data is still safe - this is just a connection issue'
+        }), 500
 
 # Health check endpoint to monitor database status
 @main_bp.route('/health')

@@ -23,17 +23,17 @@ def create_app(config_name=None):
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['DEBUG'] = False
         
-        # Conservative connection settings to avoid limits
+        # Ultra-conservative connection settings to avoid Supabase limits
         engine_options = {
-            'pool_size': 1,
-            'pool_recycle': 1800,
-            'pool_pre_ping': True,
-            'max_overflow': 1,
-            'pool_timeout': 5,
+            'pool_size': 1,  # Minimum pool size
+            'pool_recycle': 300,  # Recycle connections every 5 minutes
+            'pool_pre_ping': True,  # Test connections before use
+            'max_overflow': 0,  # No overflow connections
+            'pool_timeout': 3,  # Short timeout
             'connect_args': {
-                'connect_timeout': 5,
+                'connect_timeout': 3,  # Short connection timeout
                 'application_name': 'budge-it-app',
-                'options': '-c statement_timeout=10000'
+                'options': '-c statement_timeout=5000'  # Short statement timeout
             }
         }
         
@@ -79,38 +79,15 @@ def create_app(config_name=None):
             # Return None to force re-authentication if database is down
             return None
     
-    # Initialize database tables
+    # Initialize database tables with minimal connection attempt
     with app.app_context():
         try:
             print("🔄 Initializing database tables...")
             db.create_all()
             print("✅ Database tables created/verified successfully!")
             
-            # Check existing users in Supabase
-            try:
-                print("🔄 Checking existing users...")
-                from .models import User
-                user_count = User.query.count()
-                print(f"✅ Found {user_count} existing users in database")
-                
-                # Only create admin if NO users exist at all
-                if user_count == 0:
-                    print("🔄 No users found, creating admin user...")
-                    admin_user = User(username='admin', email='admin@example.com')
-                    admin_user.set_password('admin123')
-                    db.session.add(admin_user)
-                    db.session.commit()
-                    print("✅ Admin user created successfully!")
-                    print("✅ Login with: admin / admin123")
-                else:
-                    print(f"✅ Database has {user_count} existing users - YOUR DATA IS SAFE!")
-                    
-            except Exception as db_error:
-                print(f"⚠️ Database query failed: {db_error}")
-                print("⚠️ This is due to Supabase connection limits - YOUR DATA IS STILL SAFE!")
-                print("✅ The app will work once connection limits reset (15-30 minutes)")
-                print("✅ Your data is preserved in Supabase")
-                print("✅ App will start and be accessible for users")
+            # Skip user check to avoid connection issues during startup
+            print("✅ Database initialization completed - connection will be tested on first user request")
             
         except Exception as e:
             print(f"⚠️ Database initialization warning: {e}")

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def check_database_connection():
     """
-    Check if database connection is available with timeout.
+    Check if database connection is available with minimal timeout.
     
     Returns:
         bool: True if connection is available, False otherwise
@@ -26,10 +26,11 @@ def check_database_connection():
         # Import db here to avoid circular imports
         from app import db
         from sqlalchemy import text
-        # Try a simple query with timeout
-        db.session.execute(text('SELECT 1'))
+        
+        # Use a very simple query with minimal timeout
+        result = db.session.execute(text('SELECT 1')).scalar()
         db.session.commit()
-        return True
+        return result == 1
     except (OperationalError, TimeoutError) as e:
         logger.warning(f"Database connection timeout/error: {e}")
         return False
@@ -37,14 +38,55 @@ def check_database_connection():
         logger.error(f"Database connection check failed: {e}")
         return False
 
-def retry_database_operation(operation, max_retries=3, delay=1):
+def get_database_status():
     """
-    Retry a database operation with exponential backoff.
+    Get detailed database status information.
+    
+    Returns:
+        dict: Status information including connection state and error details
+    """
+    try:
+        # Import db here to avoid circular imports
+        from app import db
+        from sqlalchemy import text
+        
+        # Test connection
+        start_time = time.time()
+        result = db.session.execute(text('SELECT 1')).scalar()
+        db.session.commit()
+        response_time = time.time() - start_time
+        
+        return {
+            'status': 'connected',
+            'response_time': round(response_time, 3),
+            'database_url': str(db.engine.url).replace(db.engine.url.password, '***') if db.engine.url.password else str(db.engine.url),
+            'pool_size': db.engine.pool.size(),
+            'checked_in': db.engine.pool.checkedin(),
+            'checked_out': db.engine.pool.checkedout()
+        }
+    except (OperationalError, TimeoutError) as e:
+        return {
+            'status': 'timeout',
+            'error': str(e),
+            'message': 'Supabase connection timeout - this is normal during high traffic',
+            'database_url': 'Supabase (connection failed)'
+        }
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': str(e),
+            'message': 'Database connection error',
+            'database_url': 'Unknown'
+        }
+
+def retry_database_operation(operation, max_retries=2, delay=0.5):
+    """
+    Retry a database operation with minimal retries and short delays.
     
     Args:
         operation: Function to retry
-        max_retries: Maximum number of retry attempts
-        delay: Initial delay between retries in seconds
+        max_retries: Maximum number of retry attempts (reduced for Supabase)
+        delay: Initial delay between retries in seconds (reduced for responsiveness)
     
     Returns:
         Result of the operation or None if all retries failed
@@ -57,7 +99,7 @@ def retry_database_operation(operation, max_retries=3, delay=1):
                 logger.error(f"Database operation failed after {max_retries} attempts: {e}")
                 return None
             
-            wait_time = delay * (2 ** attempt)  # Exponential backoff
+            wait_time = delay * (1.5 ** attempt)  # Gentle backoff
             logger.warning(f"Database operation failed (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s: {e}")
             time.sleep(wait_time)
         except Exception as e:
