@@ -11,7 +11,7 @@ from app.models import User, Category, Transaction
 # Import db from main app
 from app import db
 # Import database utility functions
-from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password, check_database_connection, get_database_status
+from app.utils.database import get_transactions_by_user, get_categories_by_user_and_type, create_transaction, create_category, update_transaction, delete_transaction as delete_transaction_util, get_user_by_id, create_common_users, get_all_users, reset_user_password, check_database_connection, get_database_status, dispose_connection_pool
 import os
 
 # Create main blueprint for organizing application routes
@@ -29,6 +29,43 @@ def status():
         'database': 'checking...',
         'timestamp': datetime.now().isoformat()
     }), 200
+
+# Connection pool reset endpoint
+@main_bp.route('/reset-pool')
+def reset_connection_pool():
+    """
+    Reset the database connection pool to help with pool exhaustion.
+    Based on SQLAlchemy documentation recommendations.
+    """
+    try:
+        # Dispose the current connection pool
+        success = dispose_connection_pool()
+        
+        if success:
+            # Test connection after reset
+            db_healthy = check_database_connection()
+            
+            return jsonify({
+                'status': 'success',
+                'message': 'Connection pool reset successfully',
+                'database_healthy': db_healthy,
+                'timestamp': datetime.now().isoformat(),
+                'note': 'Pool has been disposed and new connections will be created'
+            }), 200
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': 'Failed to reset connection pool',
+                'timestamp': datetime.now().isoformat()
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'error': str(e),
+            'message': 'Error resetting connection pool',
+            'timestamp': datetime.now().isoformat()
+        }), 500
 
 # Comprehensive database status endpoint
 @main_bp.route('/db-status')
@@ -49,7 +86,8 @@ def detailed_database_status():
             'connection_pool_info': {
                 'pool_size': db_status.get('pool_size', 'unknown'),
                 'checked_in': db_status.get('checked_in', 'unknown'),
-                'checked_out': db_status.get('checked_out', 'unknown')
+                'checked_out': db_status.get('checked_out', 'unknown'),
+                'overflow': db_status.get('overflow', 'unknown')
             } if db_status.get('status') == 'connected' else 'connection_failed'
         })
         

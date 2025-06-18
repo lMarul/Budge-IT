@@ -23,23 +23,26 @@ def create_app(config_name=None):
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['DEBUG'] = False
         
-        # Ultra-conservative connection settings to avoid Supabase limits
+        # Ultra-aggressive connection settings to prevent pool exhaustion
+        # Based on SQLAlchemy documentation for connection pool limits
         engine_options = {
             'pool_size': 1,  # Minimum pool size
-            'pool_recycle': 300,  # Recycle connections every 5 minutes
+            'pool_recycle': 60,  # Recycle connections every 1 minute
             'pool_pre_ping': True,  # Test connections before use
             'max_overflow': 0,  # No overflow connections
-            'pool_timeout': 3,  # Short timeout
+            'pool_timeout': 1,  # Very short timeout
+            'pool_reset_on_return': 'commit',  # Reset connection state
             'connect_args': {
-                'connect_timeout': 3,  # Short connection timeout
+                'connect_timeout': 2,  # Very short connection timeout
                 'application_name': 'budge-it-app',
-                'options': '-c statement_timeout=5000'  # Short statement timeout
+                'options': '-c statement_timeout=3000'  # 3 second statement timeout
             }
         }
         
         app.config['SQLALCHEMY_ENGINE_OPTIONS'] = engine_options
         print(f"✅ Using Supabase database: {database_url[:50]}...")
         print("✅ Your data is safe in Supabase!")
+        print("🔧 Using ultra-conservative connection settings to avoid pool exhaustion")
     else:
         # Fallback to SQLite only if no DATABASE_URL
         app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
@@ -85,8 +88,6 @@ def create_app(config_name=None):
             print("🔄 Initializing database tables...")
             db.create_all()
             print("✅ Database tables created/verified successfully!")
-            
-            # Skip user check to avoid connection issues during startup
             print("✅ Database initialization completed - connection will be tested on first user request")
             
         except Exception as e:

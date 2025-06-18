@@ -38,6 +38,20 @@ def check_database_connection():
         logger.error(f"Database connection check failed: {e}")
         return False
 
+def dispose_connection_pool():
+    """
+    Dispose of the connection pool to force new connections.
+    This helps when the pool is exhausted.
+    """
+    try:
+        from app import db
+        db.engine.dispose()
+        logger.info("Connection pool disposed successfully")
+        return True
+    except Exception as e:
+        logger.error(f"Error disposing connection pool: {e}")
+        return False
+
 def get_database_status():
     """
     Get detailed database status information.
@@ -62,14 +76,16 @@ def get_database_status():
             'database_url': str(db.engine.url).replace(db.engine.url.password, '***') if db.engine.url.password else str(db.engine.url),
             'pool_size': db.engine.pool.size(),
             'checked_in': db.engine.pool.checkedin(),
-            'checked_out': db.engine.pool.checkedout()
+            'checked_out': db.engine.pool.checkedout(),
+            'overflow': db.engine.pool.overflow()
         }
     except (OperationalError, TimeoutError) as e:
         return {
             'status': 'timeout',
             'error': str(e),
             'message': 'Supabase connection timeout - this is normal during high traffic',
-            'database_url': 'Supabase (connection failed)'
+            'database_url': 'Supabase (connection failed)',
+            'suggestion': 'Connection pool may be exhausted. Try disposing and reconnecting.'
         }
     except Exception as e:
         return {
@@ -79,9 +95,9 @@ def get_database_status():
             'database_url': 'Unknown'
         }
 
-def retry_database_operation(operation, max_retries=2, delay=0.5):
+def retry_database_operation(operation, max_retries=1, delay=0.1):
     """
-    Retry a database operation with minimal retries and short delays.
+    Retry a database operation with minimal retries and very short delays.
     
     Args:
         operation: Function to retry
@@ -97,9 +113,11 @@ def retry_database_operation(operation, max_retries=2, delay=0.5):
         except (OperationalError, DisconnectionError) as e:
             if attempt == max_retries - 1:
                 logger.error(f"Database operation failed after {max_retries} attempts: {e}")
+                # Try to dispose the connection pool on final failure
+                dispose_connection_pool()
                 return None
             
-            wait_time = delay * (1.5 ** attempt)  # Gentle backoff
+            wait_time = delay * (1.2 ** attempt)  # Very gentle backoff
             logger.warning(f"Database operation failed (attempt {attempt + 1}/{max_retries}), retrying in {wait_time}s: {e}")
             time.sleep(wait_time)
         except Exception as e:
