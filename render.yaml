@@ -3,7 +3,7 @@ services:
     name: budget-tracker
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app --timeout 60 --workers 1 --worker-class sync --max-requests 50 --max-requests-jitter 5 --keep-alive 2 --preload --bind 0.0.0.0:10000
+    startCommand: gunicorn -c gunicorn.conf.py wsgi:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.13
